@@ -7,7 +7,8 @@ set(CMAKE_BUILD_TYPE Debug)
 find_package(SoapySDR REQUIRED)
 
 file(GLOB_RECURSE MAIN_SOURCE_FILES
-    src/main/*.cpp
+    src/pluto_lib/*.cpp
+    tests/main.cpp
     src/general/subfuncs/*.cpp
 )
 
