@@ -4,14 +4,17 @@
 USB_URI_1=$(iio_info -a 2>&1 | grep -oE "usb:[0-9.]+" | head -n 1)
 USB_URI_2=$(iio_info -a 2>&1 | grep -oE "usb:[0-9.]+" | tail -n 1)
 
-#run rx
-sudo ../build/main $USB_URI_1 0 20 &
-PID1=$!
-
-sleep 0.5
+TX_TIME=10 
+RX_TIME=2
 
 #run tx
-sudo ../build/main $USB_URI_2 1 15 &
+sudo ../build/main $USB_URI_2 1 $TX_TIME &
 PID2=$!
+
+sleep 1
+
+#run rx
+sudo ../build/main $USB_URI_1 0 $RX_TIME &
+PID1=$!
 
 wait $PID1 $PID2
