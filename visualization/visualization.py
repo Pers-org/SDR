@@ -16,7 +16,7 @@ plt.title("signal")
 plt.legend()
 
 plt.subplot(2,1,2)
-plt.plot(np.real(IQ_samples), np.imag(IQ_samples))
+plt.scatter(np.real(IQ_samples), np.imag(IQ_samples))
 plt.xlabel("I")
 plt.ylabel("Q")
 plt.title("Constellation")
