@@ -1,13 +1,25 @@
 import numpy as np
-from vispy import scene, app
+import matplotlib.pyplot as plt
 
-canvas = scene.SceneCanvas(keys='interactive', show=True)
-view = canvas.central_widget.add_view()
-view.camera = 'panzoom'
+rx_samples = "../pcm/rxdata.pcm"
+tx_samples = "../pcm/txdata.pcm"
 
-x = np.linspace(0, 10, 1000)
-y = np.sin(x)
+samples = np.fromfile(rx_samples, dtype=np.int16)
+IQ_samples = (samples[0::2] + 1j * samples[1::2])
 
-scene.Line(pos=np.c_[x, y], parent=view.scene)
 
-app.run()
+plt.subplot(2,1,1)
+plt.plot(np.real(IQ_samples), label="I")
+plt.plot(np.imag(IQ_samples), label="Q")
+plt.xlabel("num sample")
+plt.ylabel("sample value")
+plt.title("signal")
+plt.legend()
+
+plt.subplot(2,1,2)
+plt.plot(np.real(IQ_samples), np.imag(IQ_samples))
+plt.xlabel("I")
+plt.ylabel("Q")
+plt.title("Constellation")
+plt.show()
+
