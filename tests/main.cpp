@@ -31,12 +31,12 @@ int main(int argc, char *argv[]) {
   sdr_config_t config;
   config.usb_uri = argv[1];
   config.buff_size = 1920;
-  config.rx_carrier_freq = 734750e3;
-  config.tx_carrier_freq = 734750e3;
+  config.rx_carrier_freq = 793e6;
+  config.tx_carrier_freq = 793e6;
   config.rx_sample_rate = 1e6;
   config.tx_sample_rate = 1e6;
-  config.rx_gain = 25.0;
-  config.tx_gain = -10.0;
+  config.rx_gain = 35.0;
+  config.tx_gain = -15.0;
 
   std::cout << config.usb_uri << std::endl;
 
