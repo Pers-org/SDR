@@ -4,8 +4,8 @@
 USB_URI_1=$(iio_info -a 2>&1 | grep -oE "usb:[0-9.]+" | head -n 1)
 USB_URI_2=$(iio_info -a 2>&1 | grep -oE "usb:[0-9.]+" | tail -n 1)
 
-TX_TIME=10 
-RX_TIME=2
+TX_TIME=5
+RX_TIME=1
 
 #run tx
 sudo ../build/main $USB_URI_2 1 $TX_TIME &
