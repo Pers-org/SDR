@@ -7,7 +7,7 @@ BUILD_DIR="../build"
 
 if [ -d "$BUILD_DIR" ]; then
     rm -rf "$BUILD_DIR"
-fi
+fi 
 
 mkdir -p "$BUILD_DIR"
 cmake -S .. -B "$BUILD_DIR"
