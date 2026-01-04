@@ -2,9 +2,50 @@
 
 В этом репозитории будут собраны отчеты по лекциям и практическим занятиям в рамках производственной практики компании "БЮРО 1440"
 
-# Run
+### Documentation
 
-mkdir build && cd build && cmake .. && make
+```doxygen ./Doxyfile```
+
+if you have browser, open docs/html/index.html
+
+if you work in WSL, run
+
+```explorer.exe /docs/html/index.html```
+
+### Install
+
+Install dependences
+
+```
+cd scripts 
+./install
+```
+
+### Build
+
+Build/rebuild project
+
+```
+cd scripts
+./build
+```
+
+### Run
+
+Run project
+
+```
+cd scripts
+./run_two_sdr.sh
+```
+### Uninstall
+
+Delete dependences
+
+```
+cd scripts
+./uninstall
+```
 
 # Структура проекта
 

@@ -9,6 +9,7 @@ sudo apt-get install -y cmake g++ libpython3-dev python3-numpy swig python3-matp
 sudo apt-get install -y libxml2 libxml2-dev bison flex libcdk5-dev cmake
 sudo apt-get install -y libusb-1.0-0-dev libaio-dev pkg-config 
 sudo apt install -y libavahi-common-dev libavahi-client-dev
+sudo apt install -y doxygen graphviz
 
 ######################################### SoapySDR ##############################################
 #This library is uniform API for work with different SDR device

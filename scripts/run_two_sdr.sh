@@ -1,5 +1,7 @@
 #use this script, if you want run 2 sdr (one tx one rx)
 
+../build/TX_test
+
 #get PLUTO uri
 USB_URI_1=$(iio_info -a 2>&1 | grep -oE "usb:[0-9.]+" | head -n 1)
 USB_URI_2=$(iio_info -a 2>&1 | grep -oE "usb:[0-9.]+" | tail -n 1)
