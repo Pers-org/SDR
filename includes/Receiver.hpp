@@ -6,10 +6,16 @@
 #include "RX/synchronizer.hpp"
 #include "general/filter.hpp"
 
-class receiver{
-    public:
-        filter mf_filter_;
-        decoder decoder_;
-        demodulator demodulator_;
-        synchronizer synchronizer_;
+/**
+ * @brief This class implements the processing logic in RX side (converting
+ * samples to message)
+ */
+class receiver {
+public:
+  filter mf_filter_;        /**< increase SNR on RX side*/
+  decoder decoder_;         /**< convert bits to message*/
+  demodulator demodulator_; /**< generate demodulation table, quantizes symbols,
+                               convert symbols to bits*/
+  synchronizer synchronizer_; /**< symbol sync (gardner scheme), coarse and fine
+                                 frequency/phase sync (costas loop)*/
 };

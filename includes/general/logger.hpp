@@ -1,79 +1,92 @@
 #pragma once
 
-#include <vector>
-#include <map>
-#include <string>
+#include "../RX/complex_less.hpp"
+#include <bitset>
 #include <complex>
 #include <fstream>
-#include <bitset>
-#include "../RX/complex_less.hpp"
+#include <map>
+#include <string>
+#include <vector>
 
-class logger{
-    private:
-        std::ofstream log_file;
+/**
+ * @brief This class allow to do nice output log info
+ */
+class logger {
+private:
+  std::ofstream log_file;
 
-    public:
-        logger(const std::string& filename) : log_file(filename) {}
-        ~logger(){log_file.close();}
+public:
+  logger(const std::string &filename) : log_file(filename) {}
+  ~logger() { log_file.close(); }
 
-        void label(const char* description);
+  /**
+   * @brief Output label
+   */
+  void label(const char *description);
 
-        template <typename T>
-        void value(const char* description, const T value);
+  /**
+   * @brief Output value with label
+   */
+  template <typename T> void value(const char *description, const T value);
 
-        template <typename T>
-        void vector(const char* description, const std::vector<T> vector);
+  /**
+   * @brief Output vector with label
+   */
+  template <typename T>
+  void vector(const char *description, const std::vector<T> vector);
 
-        template <typename T, typename K>
-        void map(const char* description, const std::map<T, K>& map);
+  /**
+   * @brief Output map with label
+   */
+  template <typename T, typename K>
+  void map(const char *description, const std::map<T, K> &map);
 
-        template <typename T, typename K>
-        void map(const char* description, const std::map<T,K, ComplexLess>& map);
-
+  template <typename T, typename K>
+  void map(const char *description, const std::map<T, K, ComplexLess> &map);
 };
 
 template <typename T>
-void logger::value(const char* description, const T value){
-    log_file << std::string(description) << ": " << value << "\n\n";
+void logger::value(const char *description, const T value) {
+  log_file << std::string(description) << ": " << value << "\n\n";
 }
 
 template <typename T>
-void logger::vector(const char* description, const std::vector<T> vector){
-    log_file << std::string(description) << ": ";
+void logger::vector(const char *description, const std::vector<T> vector) {
+  log_file << std::string(description) << ": ";
 
-    for(const T& el : vector)
-        log_file << el << " ";
+  for (const T &el : vector)
+    log_file << el << " ";
 
-    log_file << "\n\n";
+  log_file << "\n\n";
 }
 
 template <typename T, typename K>
-void logger::map(const char* description, const std::map<T,K>& map){
+void logger::map(const char *description, const std::map<T, K> &map) {
 
-    log_file << std::string(description) << ": \n";
+  log_file << std::string(description) << ": \n";
 
-    for (const std::pair<T, K>& el : map) {
-        log_file << std::bitset<2>(el.first);
-        log_file << " -> " << el.second << '\n';
-    }
+  for (const std::pair<T, K> &el : map) {
+    log_file << std::bitset<2>(el.first);
+    log_file << " -> " << el.second << '\n';
+  }
 
-    log_file << "\n";
+  log_file << "\n";
 }
 
 template <typename T, typename K>
-void logger::map(const char* description, const std::map<T,K, ComplexLess>& map){
+void logger::map(const char *description,
+                 const std::map<T, K, ComplexLess> &map) {
 
-    log_file << std::string(description) << ": \n";
+  log_file << std::string(description) << ": \n";
 
-    for (const auto& [key, value] : map) {
-        log_file << std::bitset<2>(value);
-        log_file << " -> " << key << '\n';
-    }
+  for (const auto &[key, value] : map) {
+    log_file << std::bitset<2>(value);
+    log_file << " -> " << key << '\n';
+  }
 
-    log_file << "\n";
+  log_file << "\n";
 }
 
-void logger::label(const char* description){
-    log_file << std::string(description) << "\n";
+void logger::label(const char *description) {
+  log_file << std::string(description) << "\n";
 }
-

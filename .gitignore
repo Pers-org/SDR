@@ -1,3 +1,7 @@
 /build
+<<<<<<< Updated upstream
 /myenv
+=======
+/docs
+>>>>>>> Stashed changes
 *.txt
