@@ -4,13 +4,20 @@
 
 ### Documentation
 
-```doxygen ./Doxyfile```
+Create directory /docs with html and latex documentation
 
-if you have browser, open docs/html/index.html
+```
+doxygen ./Doxyfile
+```
+
+if you have browser, run docs/html/index.html
 
 if you work in WSL, run
 
-```explorer.exe /docs/html/index.html```
+```
+cd docs/html
+explorer.exe index.html
+```
 
 ### Install
 
