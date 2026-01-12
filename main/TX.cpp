@@ -1,3 +1,7 @@
+/*
+    This code convert message to samples and write samples to .pcm file
+*/
+
 #include <complex>
 #include <fstream>
 #include <iostream>
@@ -5,11 +9,11 @@
 #include <vector>
 
 #include "../includes/Transmitter.hpp"
-#include "../includes/general/logger.hpp"
 #include "../includes/general/subfuncs.hpp"
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/spdlog.h>
 
 int main(int argc, char *argv[]) {
-  /*################### TX TEST #################*/
 
   /*TX parameters*/
   const int SPS = 10; // samples per symbol
@@ -23,16 +27,19 @@ int main(int argc, char *argv[]) {
       "closet. There is one bathroom. They brush their teeth in the bathroom. "
       "The house has a garden. John and Sarah play in the garden. They have a "
       "dog. John and Sarah like to play with the dog."); // tx message
+
   std::vector<double> impulse_response = {
       1, 1, 1, 1, 1, 1, 1, 1, 1, 1}; // pulse shaping filter impulse response
+
   std::string TX_log_file = "TX_log.txt";
+
   std::string TX_samples_file = "../pcm/tx_samples.pcm";
 
   /*tx object*/
   transmitter TX;
 
-  /*object for logging*/
-  logger TX_log(TX_log_file);
+  /*create loger*/
+  auto file_logger = spdlog::basic_logger_mt("file_logger", TX_log_file);
 
   /*TX work logic*/
 
@@ -63,25 +70,26 @@ int main(int argc, char *argv[]) {
   write_pcm(TX_samples_file, scale_samples);
 
   /*logging*/
-  TX_log.label("############## TX PARAMETERS #################");
+  file_logger->info("############## TX PARAMETERS #################");
 
-  TX_log.value("message", message);
-  TX_log.value("SPS", SPS);
-  TX_log.value("logs write to", TX_log_file);
-  TX_log.value("samples write to", TX_samples_file);
+  file_logger->info("message: {}", message);
+  file_logger->info("SPS: {}", SPS);
+  file_logger->info("logs write to: {}", TX_log_file);
+  file_logger->info("samples write to: {}", TX_samples_file);
 
-  TX_log.vector("psf impulse response", impulse_response);
+  file_logger->info("psf impulse response: {}", vector2str(impulse_response));
 
-  TX_log.map("QAM mapper table", TX.modulator_.QAM_mapper_table);
+  file_logger->info("QAM mapper table:\n{}",
+                    map2str(TX.modulator_.QAM_mapper_table));
 
-  TX_log.label("############## TX LOGIC #################");
-  TX_log.vector("bits", bits);
-  TX_log.vector("barker code", barker_code);
-  TX_log.vector("bits with barker code", overhead_bits);
-  TX_log.vector("symbols", symbols);
-  TX_log.vector("ups_symbols", ups_symbols);
-  TX_log.vector("samples", samples);
-  TX_log.vector("scale samples", scale_samples);
+  file_logger->info("############## TX LOGIC #################");
+  file_logger->info("bits: {}", vector2str(bits));
+  file_logger->info("barker code: {}", vector2str(barker_code));
+  file_logger->info("bits with barker code: {}", vector2str(overhead_bits));
+  file_logger->info("symbols: {}", vector2str(symbols));
+  file_logger->info("ups_symbols", vector2str(ups_symbols));
+  file_logger->info("samples", vector2str(samples));
+  file_logger->info("scale samples", vector2str(scale_samples));
 
   return 0;
 }

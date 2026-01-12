@@ -1,3 +1,7 @@
+/*
+  This code work with Pluto SDR. He init and setup SDR, receive/transmit samples
+*/
+
 #include <SoapySDR/Device.h>
 #include <SoapySDR/Formats.h>
 #include <complex.h>

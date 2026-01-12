@@ -4,34 +4,69 @@ project(PlutoSDR CXX)
 
 set(CMAKE_BUILD_TYPE Debug)
 
-# Ищем библиотеку SoapySDR
+# Find SoapySDR lib
 find_package(SoapySDR REQUIRED)
 
-file(GLOB_RECURSE MAIN_SOURCE_FILES
+#install google test
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+)
+
+#install spdlog (loger)
+FetchContent_Declare(
+    spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_TAG v1.16.0
+)
+
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE) # for Windows
+
+FetchContent_MakeAvailable(googletest)
+FetchContent_MakeAvailable(spdlog)
+
+file(GLOB_RECURSE MAIN_SOURCE
     src/pluto_lib/*.cpp
-    tests/main.cpp
+    main/main.cpp
     src/general/subfuncs/*.cpp
 )
 
-
-file(GLOB_RECURSE TX_TEST_SOURCE_FILE
+file(GLOB_RECURSE TX_SOURCE
     "src/TX/*.cpp"
     "src/general/*.cpp"
-    "tests/TX_test.cpp"
+    "main/TX.cpp"
 )
 
-file(GLOB_RECURSE RX_TEST_SOURCE_FILE
+file(GLOB_RECURSE RX_SOURCE
     "src/RX/*.cpp"
     "src/TX/*.cpp"
     "src/general/*.cpp"
-    "tests/RX_test.cpp"
+    "main/RX.cpp"
 )
 
+file(GLOB_RECURSE RX_TEST_SOURCE
+    tests/RX_test.cpp
+    src/.*cpp
+)
+
+enable_testing()
 
 # Добавляем исполняемый файл
-add_executable(TX_test ${TX_TEST_SOURCE_FILE})
-add_executable(RX_test ${RX_TEST_SOURCE_FILE})
-add_executable(main ${MAIN_SOURCE_FILES})
+add_executable(TX ${TX_SOURCE})
+add_executable(RX ${RX_SOURCE})
+add_executable(main ${MAIN_SOURCE})
+add_executable(RX_test ${RX_TEST_SOURCE})
 
 # Линкуем библиотеки к исполняемому файлу
 target_link_libraries(main ${SoapySDR_LIBRARIES})
+target_link_libraries(TX spdlog::spdlog)
+target_link_libraries(RX ${SoapySDR_LIBRARIES} spdlog::spdlog)
+
+target_link_libraries(RX_test GTest::gtest_main)
+
+include(GoogleTest)
+gtest_discover_tests(RX_test)
+
+
+
