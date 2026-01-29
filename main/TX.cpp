@@ -47,16 +47,16 @@ int main(int argc, char *argv[]) {
   std::vector<int16_t> bits = TX.coder_.ascii_str2bin(message);
 
   /*generate barker code*/
-  std::vector<int16_t> barker_code =
-      TX.overhead_encoder_.generate_barker_code(barker_code_size);
+  // std::vector<int16_t> barker_code =
+  //     TX.overhead_encoder_.generate_barker_code(barker_code_size);
 
   /*append sync sequence*/
-  std::vector<int16_t> overhead_bits =
-      TX.overhead_encoder_.add_sync_seq_to_message(bits, barker_code);
+  // std::vector<int16_t> overhead_bits =
+  //     TX.overhead_encoder_.add_sync_seq_to_message(bits, barker_code);
 
   /*bits -> QAM symbols*/
   std::vector<std::complex<double>> symbols =
-      TX.modulator_.QAM_modulation(4, overhead_bits);
+      TX.modulator_.QAM_modulation(4, bits);
 
   /*QAM symbols -> upsampling QAM symbols*/
   std::vector<std::complex<double>> ups_symbols =
@@ -84,12 +84,12 @@ int main(int argc, char *argv[]) {
 
   file_logger->info("############## TX LOGIC #################");
   file_logger->info("bits: {}", vector2str(bits));
-  file_logger->info("barker code: {}", vector2str(barker_code));
-  file_logger->info("bits with barker code: {}", vector2str(overhead_bits));
+  // file_logger->info("barker code: {}", vector2str(barker_code));
+  // file_logger->info("bits with barker code: {}", vector2str(overhead_bits));
   file_logger->info("symbols: {}", vector2str(symbols));
-  file_logger->info("ups_symbols", vector2str(ups_symbols));
-  file_logger->info("samples", vector2str(samples));
-  file_logger->info("scale samples", vector2str(scale_samples));
+  file_logger->info("ups_symbols: {}", vector2str(ups_symbols));
+  file_logger->info("samples: {}", vector2str(samples));
+  file_logger->info("scale samples: {}", vector2str(scale_samples));
 
   return 0;
 }

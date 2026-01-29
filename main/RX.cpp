@@ -36,25 +36,27 @@ int main(int argc, char *argv[]) {
   auto file_logger = spdlog::basic_logger_mt("file_logger", RX_log_file);
 
   /*generate barker code*/
-  std::vector<int16_t> barker_code =
-      overhead_encoder_.generate_barker_code(barker_code_size);
+  // std::vector<int16_t> barker_code =
+  //     overhead_encoder_.generate_barker_code(barker_code_size);
 
   /*barker code -> symbols*/
-  std::vector<std::complex<double>> barker_code_symb =
-      modulator_.QAM_modulation(4, barker_code);
+  // std::vector<std::complex<double>> barker_code_symb =
+  //     modulator_.QAM_modulation(4, barker_code);
 
   /*RX work logic*/
 
   /*read samples from file*/
   std::vector<std::complex<int16_t>> samples = read_pcm(RX_samples_file);
+  std::vector<std::complex<int16_t>> samples2(samples.begin() + 2,
+                                              samples.end());
 
   /*coarse freq sync*/
-  std::vector<std::complex<double>> cfo_symbols =
-      RX.synchronizer_.coarse_freq_offset(samples, barker_code_size);
+  // std::vector<std::complex<double>> cfo_symbols =
+  //     RX.synchronizer_.coarse_freq_offset(samples2, barker_code_size);
 
   /*send samples to mathced filter to increase SNR*/
   std::vector<std::complex<double>> mf_samples =
-      RX.mf_filter_.convolve(cfo_symbols, impulse_response, SPS);
+      RX.mf_filter_.convolve(samples2, impulse_response, SPS);
 
   /*symbol sync (gardner scheme). Find offsets for each symbol*/
   std::vector<int16_t> offsets = RX.synchronizer_.gardner(mf_samples, SPS);
@@ -63,28 +65,28 @@ int main(int argc, char *argv[]) {
   std::vector<std::complex<double>> symbols =
       RX.mf_filter_.downsampling(mf_samples, offsets, SPS);
 
-  /*get corr_coeffs (simulate correlation receiving)*/
-  std::vector<std::complex<double>> corr_coeffs =
-      RX.synchronizer_.corr_receiving(symbols, barker_code_symb);
+  // /*get corr_coeffs (simulate correlation receiving)*/
+  // std::vector<std::complex<double>> corr_coeffs =
+  //     RX.synchronizer_.corr_receiving(symbols, barker_code_symb);
 
-  /*find peak of correlation (start packet)*/
-  int start_sync = RX.synchronizer_.find_sync_index(corr_coeffs);
+  // /*find peak of correlation (start packet)*/
+  // int start_sync = RX.synchronizer_.find_sync_index(corr_coeffs);
 
-  /*slice symbols*/
-  std::vector<std::complex<double>> slice_symbols(symbols.begin() + 0,
-                                                  symbols.end());
+  // /*slice symbols*/
+  // std::vector<std::complex<double>> slice_symbols(symbols.begin() + 0,
+  //                                                 symbols.end());
 
-  /*fine freq sync*/
-  std::vector<std::complex<double>> post_costas =
-      RX.synchronizer_.costas_loop(slice_symbols);
+  // /*fine freq sync*/
+  // std::vector<std::complex<double>> post_costas =
+  //     RX.synchronizer_.costas_loop(slice_symbols);
 
-  /*cut barker*/
-  std::vector<std::complex<double>> wo_barker(
-      post_costas.begin() + barker_code_size, post_costas.end());
+  // /*cut barker*/
+  // std::vector<std::complex<double>> wo_barker(
+  //     post_costas.begin() + barker_code_size, post_costas.end());
 
   /*symbols -> true symbols (quantization)*/
   std::vector<std::complex<double>> true_symbols =
-      RX.demodulator_.QAM_quantizater(wo_barker, mod_order);
+      RX.demodulator_.QAM_quantizater(symbols, mod_order);
 
   /*true symbols -> bits*/
   std::vector<int16_t> bits =
@@ -112,16 +114,16 @@ int main(int argc, char *argv[]) {
   file_logger->info("mf_samples: {}", vector2str(mf_samples));
   file_logger->info("offsets: {}", vector2str(offsets));
   file_logger->info("symbols: {}", vector2str(symbols));
-  file_logger->info("barker code: {}", vector2str(barker_code));
-  file_logger->info("barker symbols: {}", vector2str(barker_code_symb));
-  file_logger->info("correlation coefficient: {}", vector2str(corr_coeffs));
+  // file_logger->info("barker code: {}", vector2str(barker_code));
+  // file_logger->info("barker symbols: {}", vector2str(barker_code_symb));
+  // file_logger->info("correlation coefficient: {}", vector2str(corr_coeffs));
 
-  file_logger->info("start sync seq index: {}", start_sync);
+  // file_logger->info("start sync seq index: {}", start_sync);
 
-  file_logger->info("slice symbols: {}", vector2str(slice_symbols));
-  file_logger->info("post cfo symbols: {}", vector2str(cfo_symbols));
+  // file_logger->info("slice symbols: {}", vector2str(slice_symbols));
+  // file_logger->info("post cfo symbols: {}", vector2str(cfo_symbols));
 
-  file_logger->info("post_costas: {}", vector2str(post_costas));
+  // file_logger->info("post_costas: {}", vector2str(post_costas));
   file_logger->info("true_symbols: {}", vector2str(true_symbols));
   file_logger->info("bits: {}", vector2str(bits));
 
