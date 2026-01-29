@@ -7,8 +7,8 @@
 std::vector<int16_t>
 synchronizer::gardner(const std::vector<std::complex<double>> &samples,
                       int const L) {
-  double Kp = 3.85;
-  double BnTs = 0.0000059;
+  double Kp = 3.82;
+  double BnTs = 0.0005;
 
   double zeta = std::sqrt(2) / 2;
   double theta = (BnTs / 10) / (zeta + 1 / (4 * zeta));
@@ -36,17 +36,13 @@ synchronizer::gardner(const std::vector<std::complex<double>> &samples,
     e = (samples[n + L].real() - samples[n].real()) *
             samples[n + L / 2].real() +
         (samples[n + L].imag() - samples[n].imag()) * samples[n + L / 2].imag();
-
+    e = -e;
     p1 = e * K1;
     p2 += p1 + e * K2;
 
     p2 -= std::floor(p2);
 
-    offset = static_cast<int>(std::lround(p2 * L));
-    if (offset >= L)
-      offset = L - 1;
-    if (offset < 0)
-      offset = 0;
+    offset = static_cast<int>(std::round(p2 * L));
     offset_list.push_back(offset);
   }
 
