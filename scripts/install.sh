@@ -10,6 +10,7 @@ sudo apt-get install -y libxml2 libxml2-dev bison flex libcdk5-dev cmake
 sudo apt-get install -y libusb-1.0-0-dev libaio-dev pkg-config 
 sudo apt install -y libavahi-common-dev libavahi-client-dev
 sudo apt install -y doxygen graphviz pre-commit
+sudo apt install libsdl2-dev libgl1-mesa-dev libglew-dev
 
 ######################################### SoapySDR ##############################################
 #This library is uniform API for work with different SDR device
