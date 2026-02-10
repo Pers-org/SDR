@@ -262,15 +262,46 @@ void run_gui(tx_cfg &tx_config, rx_cfg &rx_config) {
         ImGui::EndTabBar();
       }
 
-      ImGui::End();
+      /*Receiver Tab*/
+      if (ImGui::BeginTabItem("SDR")) {
+        /*
+          Separate main window on 2 part: left part - settings, right - plots.
+          Each subwindow - child (use BeginChild for create)
+        */
+
+        /*left child*/
+        {
+          if (ImGui::BeginChild("SDR", ImVec2(left_width, 0), true)) {
+            /*title*/
+            ImGui::Text("Settings");
+          }
+
+          ImGui::EndChild();
+        }
+
+        /*Paste this between childes (vertical separetor)*/
+        ImGui::SameLine();
+
+        /*right child*/
+        {
+          if (ImGui::BeginChild("Plots", ImVec2(0, 0), true)) {
+          }
+        }
+
+        ImGui::EndTabItem();
+      }
+
+      ImGui::EndTabBar();
     }
 
-    ImGui::Render();
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    SDL_GL_SwapWindow(window);
+    ImGui::End();
   }
+
+  ImGui::Render();
+  glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT);
+  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+  SDL_GL_SwapWindow(window);
 
   /*#################################################################################################################*/
 
