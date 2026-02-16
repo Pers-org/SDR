@@ -1,6 +1,9 @@
-#include "../../includes/pluto_lib/pluto_lib.hpp"
+#include "../../includes/pluto_lib.hpp"
 #include <SoapySDR/Device.h>
 #include <SoapySDR/Formats.h>
+
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/spdlog.h>
 
 /*setup base settings for pluto SDR*/
 struct SoapySDRDevice *setup_pluto_sdr(sdr_config_t *config) {
@@ -27,9 +30,8 @@ struct SoapySDRDevice *setup_pluto_sdr(sdr_config_t *config) {
   SoapySDRDevice *sdr = SoapySDRDevice_make(&args);
   SoapySDRKwargs_clear(&args);
 
-  /*check pointer error*/
   if (sdr == NULL) {
-    printf("SoapySDRDevice_make fail: %s\n", SoapySDRDevice_lastError());
+    spdlog::error("SoapySDRDevice_make fail: %s\n", SoapySDRDevice_lastError());
     return NULL;
   }
 

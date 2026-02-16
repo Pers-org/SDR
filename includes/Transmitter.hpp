@@ -1,10 +1,10 @@
 #pragma once
 
+#include "ImGUI_interface.h"
 #include "TX/coder.hpp"
 #include "TX/modulator.hpp"
 #include "TX/overhead_encoder.hpp"
 #include "general/filter.hpp"
-
 /**
  * @brief This class implements the processing logic in TX side (converting
  * message to samples)
@@ -17,3 +17,5 @@ public:
   overhead_encoder
       overhead_encoder_; /**< generate overheads (CRC, sync sequence)*/
 };
+
+void TX_proccesing(tx_cfg &config);

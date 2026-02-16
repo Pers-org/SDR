@@ -65,21 +65,12 @@ target_compile_options(implot PRIVATE -fPIC)
 file(GLOB_RECURSE MAIN_SOURCE
     src/pluto_lib/*.cpp
     main/main.cpp
-    src/general/subfuncs/*.cpp
-)
-
-file(GLOB_RECURSE TX_SOURCE
-    "src/TX/*.cpp"
-    "src/general/*.cpp"
-    "main/TX.cpp"
-)
-
-file(GLOB_RECURSE RX_SOURCE
+    src/general/*.cpp
     "src/RX/*.cpp"
     "src/TX/*.cpp"
-    "src/general/*.cpp"
-    "main/RX.cpp"
+    "visualization/ImGUI_interface.cpp"
 )
+
 
 file(GLOB_RECURSE RX_TEST_SOURCE
     tests/RX_test.cpp
@@ -89,15 +80,12 @@ file(GLOB_RECURSE RX_TEST_SOURCE
 enable_testing()
 
 # Добавляем исполняемый файл
-add_executable(TX ${TX_SOURCE})
-add_executable(RX ${RX_SOURCE})
 add_executable(main ${MAIN_SOURCE})
 add_executable(RX_test ${RX_TEST_SOURCE})
 
 # Линкуем библиотеки к исполняемому файлу
-target_link_libraries(main ${SoapySDR_LIBRARIES} imgui implot ${SDL2_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES})
-target_link_libraries(TX spdlog::spdlog)
-target_link_libraries(RX ${SoapySDR_LIBRARIES} spdlog::spdlog)
+target_link_libraries(main ${SoapySDR_LIBRARIES} imgui implot ${SDL2_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} spdlog::spdlog)
+
 
 target_link_libraries(RX_test GTest::gtest_main)
 

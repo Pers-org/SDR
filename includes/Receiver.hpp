@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ImGUI_interface.h"
 #include "RX/complex_less.hpp"
 #include "RX/decoder.hpp"
 #include "RX/demodulator.hpp"
@@ -19,3 +20,5 @@ public:
   synchronizer synchronizer_; /**< symbol sync (gardner scheme), coarse and fine
                                  frequency/phase sync (costas loop)*/
 };
+
+void RX_proccesing(rx_cfg &config);

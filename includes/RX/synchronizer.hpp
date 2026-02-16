@@ -74,7 +74,7 @@ public:
    * @return vector of shifts for each symbol
    */
   std::vector<int16_t> gardner(const std::vector<std::complex<double>> &samples,
-                               int const L);
+                               int const L, float const Kp, float const BnTs);
 
   /**
    * @brief Calculate correlation function

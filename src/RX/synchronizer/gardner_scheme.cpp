@@ -6,9 +6,7 @@
 
 std::vector<int16_t>
 synchronizer::gardner(const std::vector<std::complex<double>> &samples,
-                      int const L) {
-  double Kp = 3.82;
-  double BnTs = 0.0005;
+                      int const L, float const Kp, float const BnTs) {
 
   double zeta = std::sqrt(2) / 2;
   double theta = (BnTs / 10) / (zeta + 1 / (4 * zeta));

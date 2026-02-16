@@ -97,3 +97,5 @@ std::string map2str(const std::map<T, K, ComplexLess> map) {
 
   return oss.str();
 }
+
+std::vector<int16_t> bits_gen(const int N);
