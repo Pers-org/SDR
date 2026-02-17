@@ -1,28 +1,40 @@
-#include <vector>
 #include <complex>
+#include <fftw3.h>
+#include <iostream>
+#include <vector>
 
+#include "../../../includes/ImGUI_interface.h"
 #include "../../../includes/RX/synchronizer.hpp"
+#include "../fft.hpp"
 
-std::complex<double> to_double(const std::complex<int16_t>& x) {
-    return std::complex<double>(static_cast<double>(x.real()), static_cast<double>(x.imag()));
-}
+void synchronizer::coarse_freq_offset(
+    const std::vector<std::complex<int16_t>> &samples, rx_cfg &rx_config,
+    int Fs) {
+  std::vector<std::complex<double>> pow_samples(samples.size());
 
-std::vector<std::complex<double>> synchronizer::coarse_freq_offset(const std::vector<std::complex<int16_t>>& symbols, const int barker_size){
-    double error = 0;
-    std::vector<std::complex<double>> recovery_symbols;
-    recovery_symbols.reserve(symbols.size());
+  for (size_t i = 0; i < samples.size(); ++i) {
+    std::complex<double> x(static_cast<double>(samples[i].real()),
+                           static_cast<double>(samples[i].imag()));
 
-    // compute coarse freq error
-    for (int i = 0; i < barker_size; ++i) {
-        error += std::arg(to_double(symbols[i + barker_size]) * std::conj(to_double(symbols[i])));
+    pow_samples[i] = std::pow(x, rx_config.mod_order);
+  }
+
+  rx_config.CFO_spectrum = fft(pow_samples, Fs);
+
+  double max = -__DBL_MAX__;
+  int index;
+
+  for (int i = 0; i < rx_config.CFO_spectrum.first.size(); ++i) {
+    if (std::abs(rx_config.CFO_spectrum.first[i]) > max) {
+      max = std::abs(rx_config.CFO_spectrum.first[i]);
+      index = i;
     }
+  }
 
-    error = error / (2 * M_PI * barker_size);
+  double df = rx_config.CFO_spectrum.second[index];
 
-    // correct symbols
-    for (size_t i = 0; i < symbols.size(); ++i) {
-        recovery_symbols.push_back(to_double(symbols[i]) * std::polar(1.0, -2.0 * M_PI * error));
-    }
-
-    return recovery_symbols;
+  for (int i = 0; i < rx_config.rx_samples.size(); ++i) {
+    rx_config.rx_samples[i] *=
+        std::exp(std::complex<double>(0.0, -2.0 * M_PI * df));
+  }
 }

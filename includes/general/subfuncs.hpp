@@ -1,9 +1,12 @@
+#pragma once
+
 #include "../RX/complex_less.hpp"
+#include <algorithm>
 #include <complex>
+#include <fftw3.h>
 #include <map>
 #include <sstream>
 #include <vector>
-
 /**
  * @brief convert dec number to bits
  *

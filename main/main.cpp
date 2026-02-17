@@ -126,6 +126,8 @@ void SDR_run(sdr_config_t &sdr_config, tx_cfg &tx_config, rx_cfg &rx_config) {
       // считали буффер RX, записали его в rx_buffer
       SoapySDRDevice_readStream(sdr, rxStream, rx_buffs, sdr_config.buff_size,
                                 &flags, &timeNs, timeoutUs);
+
+      RX_proccesing(rx_config, sdr_config);
     }
   }
 
@@ -225,7 +227,7 @@ void SDR_run(sdr_config_t &sdr_config, tx_cfg &tx_config, rx_cfg &rx_config) {
                                          sdr_config.buff_size, &flags, &timeNs,
                                          timeoutUs);
 
-      RX_proccesing(rx_config);
+      // RX_proccesing(rx_config, sdr_config);
 
       last_time = timeNs;
 
@@ -252,17 +254,19 @@ void SDR_run(sdr_config_t &sdr_config, tx_cfg &tx_config, rx_cfg &rx_config) {
 
 int main(int argc, char *argv[]) {
 
+  int mode = std::atoi(argv[2]);
+
   /*init SDR config*/
   sdr_config_t sdr_config;
-  sdr_config.usb_uri = "usb:3.10.5";
+  sdr_config.usb_uri = argv[1];
   sdr_config.buff_size = 1920;
   sdr_config.rx_carrier_freq = 800e6;
   sdr_config.tx_carrier_freq = 800e6;
   sdr_config.rx_sample_rate = 1e6;
   sdr_config.tx_sample_rate = 1e6;
-  sdr_config.rx_gain = 35.0;
-  sdr_config.tx_gain = -15.0;
-  sdr_config.mode = 1;
+  sdr_config.rx_gain = 20;
+  sdr_config.tx_gain = 80;
+  sdr_config.mode = mode;
 
   /*init TX config*/
   tx_cfg tx_config;
@@ -279,8 +283,8 @@ int main(int argc, char *argv[]) {
   rx_config.run = true;
   rx_config.costas_Ki = 1;
   rx_config.costas_Kp = 1;
-  rx_config.gardner_BnTs = 0.00025;
-  rx_config.gardner_Kp = 4;
+  rx_config.gardner_BnTs = 0.000005;
+  rx_config.gardner_Kp = 1;
   rx_config.IR_type = 1;
   rx_config.mod_order = 2;
   rx_config.sps = 10;

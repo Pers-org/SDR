@@ -34,12 +34,40 @@ template <typename T> ImPlotPoint get_Q(int idx, void *user_data) {
   return ImPlotPoint(idx, (*vec)[idx].imag());
 }
 
-ImPlotPoint get_points(int idx, void *data) {
-  auto *vec = static_cast<std::vector<std::complex<double>> *>(data);
+template <typename T> ImPlotPoint get_points(int idx, void *data) {
+  auto *vec = static_cast<std::vector<std::complex<T>> *>(data);
 
   const auto &s = (*vec)[idx];
 
   return ImPlotPoint(s.real(), s.imag());
+}
+
+ImPlotPoint get_phase_spec(int idx, void *data) {
+  auto *fft = static_cast<
+      std::pair<std::vector<std::complex<double>>, std::vector<double>> *>(
+      data);
+
+  const auto &samples = fft->first;
+  const auto &freqs = fft->second;
+
+  double x = freqs[idx];
+  double y = std::arg(samples[idx]);
+
+  return ImPlotPoint(x, y);
+}
+
+ImPlotPoint get_amp_spec(int idx, void *data) {
+  auto *fft = static_cast<
+      std::pair<std::vector<std::complex<double>>, std::vector<double>> *>(
+      data);
+
+  const auto &samples = fft->first;
+  const auto &freqs = fft->second;
+
+  double x = freqs[idx];
+  double y = std::abs(samples[idx]);
+
+  return ImPlotPoint(x, y);
 }
 
 void run_gui(tx_cfg &tx_config, rx_cfg &rx_config, sdr_config_t &sdr_config) {
@@ -127,7 +155,8 @@ void run_gui(tx_cfg &tx_config, rx_cfg &rx_config, sdr_config_t &sdr_config) {
               ImPlot::SetupAxisLimits(ImAxis_X1, -5, 5, ImGuiCond_Always);
               ImPlot::SetupAxisLimits(ImAxis_Y1, -5, 5, ImGuiCond_Always);
 
-              ImPlot::PlotScatterG("Symbols", get_points, &tx_config.symbols,
+              ImPlot::PlotScatterG("Symbols", get_points<int16_t>,
+                                   &tx_config.symbols,
                                    tx_config.symbols.size());
 
               ImPlot::EndPlot();
@@ -172,8 +201,10 @@ void run_gui(tx_cfg &tx_config, rx_cfg &rx_config, sdr_config_t &sdr_config) {
             ImGui::RadioButton("Rised-Cosine", &rx_config.IR_type, 1);
 
             ImGui::SeparatorText("Gardner (symbol sync)");
-            ImGui::SliderFloat("BnTs", &rx_config.gardner_BnTs, 0, 10);
-            ImGui::SliderFloat("gKp", &rx_config.gardner_Kp, 0, 10);
+            ImGui::SliderFloat("BnTs", &rx_config.gardner_BnTs, 0, 0.1, "%.7f",
+                               0.00000001);
+            ImGui::SliderFloat("gKp", &rx_config.gardner_Kp, 0, 5, "%.7f",
+                               0.001);
 
             ImGui::SeparatorText("Costas (frequency sync)");
             ImGui::SliderFloat("cKp", &rx_config.costas_Kp, 0, 10);
@@ -186,6 +217,16 @@ void run_gui(tx_cfg &tx_config, rx_cfg &rx_config, sdr_config_t &sdr_config) {
 
           if (ImGui::BeginChild("RX_Plots", ImVec2(0, 0), true)) {
             ImVec2 win_params = ImGui::GetContentRegionAvail();
+
+            if (ImPlot::BeginPlot("CFO spectrum",
+                                  ImVec2(-1, win_params.y / 2))) {
+              ImPlot::SetupAxes("frequency", "Amplitude");
+              ImPlot::PlotLineG("I component", get_amp_spec,
+                                &rx_config.CFO_spectrum.first,
+                                rx_config.CFO_spectrum.first.size());
+              ImPlot::EndPlot();
+            }
+
             if (ImPlot::BeginPlot("I/Q samples",
                                   ImVec2(-1, win_params.y / 2))) {
               ImPlot::SetupAxes("Time", "Amplitude");
@@ -195,6 +236,46 @@ void run_gui(tx_cfg &tx_config, rx_cfg &rx_config, sdr_config_t &sdr_config) {
               ImPlot::PlotLineG("Q component", get_Q<int16_t>,
                                 &rx_config.rx_samples,
                                 rx_config.rx_samples.size() / 2);
+              ImPlot::EndPlot();
+            }
+
+            if (ImPlot::BeginPlot("Post CFO signal",
+                                  ImVec2(-1, win_params.y / 2))) {
+              ImPlot::SetupAxes("Time", "Amplitude");
+              ImPlot::PlotLineG("I component", get_I<int16_t>,
+                                &rx_config.post_cfo_signal.first,
+                                rx_config.post_cfo_signal.first.size() / 2);
+              ImPlot::PlotLineG("Q component", get_Q<int16_t>,
+                                &rx_config.rx_samples,
+                                rx_config.rx_samples.size() / 2);
+              ImPlot::EndPlot();
+            }
+
+            if (ImPlot::BeginPlot("Amplitude spectrum",
+                                  ImVec2(-1, win_params.y / 2))) {
+              ImPlot::SetupAxes("frequency", "Amplitude");
+              ImPlot::PlotLineG("I component", get_amp_spec,
+                                &rx_config.spectrum.first,
+                                rx_config.spectrum.first.size());
+              ImPlot::EndPlot();
+            }
+
+            if (ImPlot::BeginPlot("Phase spectrum",
+                                  ImVec2(-1, win_params.y / 2))) {
+              ImPlot::SetupAxes("frequency", "Amplitude");
+              ImPlot::PlotLineG("I component", get_phase_spec,
+                                &rx_config.spectrum,
+                                rx_config.spectrum.first.size());
+              ImPlot::EndPlot();
+            }
+
+            if (ImPlot::BeginPlot("Before Gardner I/Q constellation",
+                                  ImVec2(-1, win_params.y / 2))) {
+
+              ImPlot::PlotScatterG("Raw symbols", get_points<int16_t>,
+                                   &rx_config.rx_samples,
+                                   rx_config.rx_samples.size());
+
               ImPlot::EndPlot();
             }
 
@@ -210,14 +291,21 @@ void run_gui(tx_cfg &tx_config, rx_cfg &rx_config, sdr_config_t &sdr_config) {
               ImPlot::EndPlot();
             }
 
-            if (ImPlot::BeginPlot("I/Q constellation",
+            if (ImPlot::BeginPlot("Post Gardner I/Q constellation",
                                   ImVec2(-1, win_params.y / 2))) {
-              ImPlot::SetupAxisLimits(ImAxis_X1, -5, 5, ImGuiCond_Always);
-              ImPlot::SetupAxisLimits(ImAxis_Y1, -5, 5, ImGuiCond_Always);
-
-              ImPlot::PlotScatterG("Symbols", get_points,
+              ImPlot::PlotScatterG("Symbols", get_points<double>,
                                    &rx_config.raw_symbols,
                                    rx_config.raw_symbols.size());
+
+              ImPlot::EndPlot();
+            }
+
+            if (ImPlot::BeginPlot("Correlation function",
+                                  ImVec2(-1, win_params.y / 2))) {
+              ImPlot::SetupAxes("Time", "Amplitude");
+              ImPlot::PlotLineG("I component", get_value<double>,
+                                &rx_config.corr_func,
+                                rx_config.corr_func.size());
 
               ImPlot::EndPlot();
             }
@@ -246,9 +334,9 @@ void run_gui(tx_cfg &tx_config, rx_cfg &rx_config, sdr_config_t &sdr_config) {
 
             ImGui::SeparatorText("Gain");
 
-            ImGui::SliderFloat("Rx gain, db", &sdr_config.rx_gain, 0, 50,
+            ImGui::SliderFloat("Rx gain, db", &sdr_config.rx_gain, 0, 70,
                                "%.3f");
-            ImGui::SliderFloat("Tx gain, db", &sdr_config.tx_gain, -15, 0,
+            ImGui::SliderFloat("Tx gain, db", &sdr_config.tx_gain, 0, 85,
                                "%.3f");
 
             ImGui::SeparatorText("Sample rate");

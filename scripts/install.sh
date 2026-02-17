@@ -11,6 +11,7 @@ sudo apt-get install -y libusb-1.0-0-dev libaio-dev pkg-config
 sudo apt install -y libavahi-common-dev libavahi-client-dev
 sudo apt install -y doxygen graphviz pre-commit
 sudo apt install libsdl2-dev libgl1-mesa-dev libglew-dev
+sudo apt install libfftw3-dev
 
 ######################################### SoapySDR ##############################################
 #This library is uniform API for work with different SDR device

@@ -7,6 +7,9 @@ set(CMAKE_BUILD_TYPE Debug)
 # Find SoapySDR lib
 find_package(SoapySDR REQUIRED)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(FFTW3 REQUIRED fftw3)
+
 #install google test
 include(FetchContent)
 FetchContent_Declare(
@@ -84,7 +87,7 @@ add_executable(main ${MAIN_SOURCE})
 add_executable(RX_test ${RX_TEST_SOURCE})
 
 # Линкуем библиотеки к исполняемому файлу
-target_link_libraries(main ${SoapySDR_LIBRARIES} imgui implot ${SDL2_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} spdlog::spdlog)
+target_link_libraries(main ${SoapySDR_LIBRARIES} imgui implot ${SDL2_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} spdlog::spdlog fftw3)
 
 
 target_link_libraries(RX_test GTest::gtest_main)

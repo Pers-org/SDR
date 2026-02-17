@@ -19,6 +19,8 @@
 #include "../../includes/general/subfuncs.hpp"
 
 void TX_proccesing(tx_cfg &config) {
+
+  int barker_code_size = 4;
   /*tx object*/
   transmitter TX;
 
@@ -28,12 +30,12 @@ void TX_proccesing(tx_cfg &config) {
   /*TX work logic*/
 
   /*generate barker code*/
-  // std::vector<int16_t> barker_code =
-  //     TX.overhead_encoder_.generate_barker_code(barker_code_size);
+  std::vector<int16_t> barker_code =
+      TX.overhead_encoder_.generate_barker_code(barker_code_size);
 
   /*append sync sequence*/
-  // std::vector<int16_t> overhead_bits =
-  //     TX.overhead_encoder_.add_sync_seq_to_message(bits, barker_code);
+  std::vector<int16_t> overhead_bits =
+      TX.overhead_encoder_.add_sync_seq_to_message(config.bits, barker_code);
 
   /*bits -> QAM symbols*/
   config.symbols = std::move(TX.modulator_.QAM(config.mod_order, config.bits));

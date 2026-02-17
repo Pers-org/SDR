@@ -21,4 +21,4 @@ public:
                                  frequency/phase sync (costas loop)*/
 };
 
-void RX_proccesing(rx_cfg &config);
+void RX_proccesing(rx_cfg &rx_config, sdr_config_t &sdr_config);

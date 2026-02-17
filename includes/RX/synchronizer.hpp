@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 
+#include "../ImGUI_interface.h"
 /**
  * @brief This class implements the symbol, coarse and fine frequency/phase sync
  */
@@ -46,9 +47,8 @@ public:
    *
    * @return symbols with phase correction
    */
-  std::vector<std::complex<double>>
-  coarse_freq_offset(const std::vector<std::complex<int16_t>> &symbols,
-                     const int barker_size);
+  void coarse_freq_offset(const std::vector<std::complex<int16_t>> &samples,
+                          rx_cfg &rx_config, int Fs);
 
   /**
    * @brief fine frequency sync
@@ -87,7 +87,7 @@ public:
    *
    * @return vector of shifts for each symbol
    */
-  std::vector<std::complex<double>>
+  std::vector<double>
   corr_receiving(const std::vector<std::complex<double>> &symbols,
                  const std::vector<std::complex<double>> &sync_symbols);
 

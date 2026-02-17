@@ -2,6 +2,7 @@
     This code read samples from .pcm file and convert samples to message
 */
 
+#include "fftw3.h"
 #include <complex>
 #include <fstream>
 #include <iostream>
@@ -14,24 +15,33 @@
 #include "../../includes/Receiver.hpp"
 #include "../../includes/TX/modulator.hpp"
 #include "../../includes/TX/overhead_encoder.hpp"
-#include "../../includes/general/subfuncs.hpp"
+#include "./fft.hpp"
 
-void RX_proccesing(rx_cfg &rx_config) {
+void RX_proccesing(rx_cfg &rx_config, sdr_config_t &sdr_config) {
 
   std::vector<double> IR(rx_config.sps, 1); // matched filter IR
-
+  int barker_code_size = 13;
   /*RX object*/
   receiver RX;
   modulator modulator_;
   overhead_encoder overhead_encoder_;
 
+  /*CFO*/
+
+  RX.synchronizer_.coarse_freq_offset(rx_config.rx_samples, rx_config,
+                                      sdr_config.rx_sample_rate);
+
+  /*FFT*/
+
+  rx_config.spectrum = fft(rx_config.rx_samples, sdr_config.rx_sample_rate);
+
   /*generate barker code*/
-  // std::vector<int16_t> barker_code =
-  //     overhead_encoder_.generate_barker_code(barker_code_size);
+  std::vector<int16_t> barker_code =
+      overhead_encoder_.generate_barker_code(barker_code_size);
 
   /*barker code -> symbols*/
-  // std::vector<std::complex<double>> barker_code_symb =
-  //     modulator_.QAM_modulation(4, barker_code);
+  std::vector<std::complex<double>> barker_code_symb =
+      modulator_.QAM(rx_config.mod_order, barker_code);
 
   /*RX work logic*/
 
@@ -40,8 +50,8 @@ void RX_proccesing(rx_cfg &rx_config) {
   //     RX.synchronizer_.coarse_freq_offset(samples2, barker_code_size);
 
   /*send samples to mathced filter to increase SNR*/
-  rx_config.mf_samples_out = std::move(
-      RX.mf_filter_.convolve(rx_config.rx_samples, IR, rx_config.sps));
+  rx_config.mf_samples_out = std::move(RX.mf_filter_.convolve(
+      rx_config.post_cfo_signal.first, IR, rx_config.sps));
 
   /*symbol sync (gardner scheme). Find offsets for each symbol*/
   std::vector<int16_t> offsets =
@@ -53,8 +63,8 @@ void RX_proccesing(rx_cfg &rx_config) {
                                                      offsets, rx_config.sps);
 
   // /*get corr_coeffs (simulate correlation receiving)*/
-  // std::vector<std::complex<double>> corr_coeffs =
-  //     RX.synchronizer_.corr_receiving(symbols, barker_code_symb);
+  rx_config.corr_func =
+      RX.synchronizer_.corr_receiving(rx_config.raw_symbols, barker_code_symb);
 
   // /*find peak of correlation (start packet)*/
   // int start_sync = RX.synchronizer_.find_sync_index(corr_coeffs);

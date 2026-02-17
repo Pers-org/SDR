@@ -37,6 +37,12 @@ struct rx_cfg {
   std::vector<std::complex<int16_t>> rx_samples;
   std::vector<std::complex<double>> mf_samples_out;
   std::vector<std::complex<double>> raw_symbols;
+  std::vector<double> corr_func;
+  std::pair<std::vector<std::complex<double>>, std::vector<double>> spectrum;
+  std::pair<std::vector<std::complex<double>>, std::vector<double>>
+      CFO_spectrum;
+  std::pair<std::vector<std::complex<double>>, std::vector<double>>
+      post_cfo_signal;
 };
 
 void run_gui(tx_cfg &tx_config, rx_cfg &rx_config, sdr_config_t &sdr_config);
