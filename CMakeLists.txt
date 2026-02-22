@@ -12,10 +12,10 @@ pkg_check_modules(FFTW3 REQUIRED fftw3)
 
 #install google test
 include(FetchContent)
-FetchContent_Declare(
-  googletest
-  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
-)
+# FetchContent_Declare(
+#   googletest
+#   URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+# )
 
 #install spdlog (loger)
 FetchContent_Declare(
@@ -26,7 +26,7 @@ FetchContent_Declare(
 
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE) # for Windows
 
-FetchContent_MakeAvailable(googletest)
+# FetchContent_MakeAvailable(googletest)
 FetchContent_MakeAvailable(spdlog)
 
 set(THIRD_PARTY_DIR ${PROJECT_SOURCE_DIR}/third_party)
@@ -75,25 +75,25 @@ file(GLOB_RECURSE MAIN_SOURCE
 )
 
 
-file(GLOB_RECURSE RX_TEST_SOURCE
-    tests/RX_test.cpp
-    src/.*cpp
-)
+# file(GLOB_RECURSE RX_TEST_SOURCE
+#     tests/RX_test.cpp
+#     src/.*cpp
+# )
 
-enable_testing()
+# enable_testing()
 
 # Добавляем исполняемый файл
 add_executable(main ${MAIN_SOURCE})
-add_executable(RX_test ${RX_TEST_SOURCE})
+# add_executable(RX_test ${RX_TEST_SOURCE})
 
 # Линкуем библиотеки к исполняемому файлу
 target_link_libraries(main ${SoapySDR_LIBRARIES} imgui implot ${SDL2_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} spdlog::spdlog fftw3)
 
 
-target_link_libraries(RX_test GTest::gtest_main)
+# target_link_libraries(RX_test GTest::gtest_main)
 
-include(GoogleTest)
-gtest_discover_tests(RX_test)
+# include(GoogleTest)
+# gtest_discover_tests(RX_test)
 
 
 

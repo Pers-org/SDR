@@ -6,32 +6,47 @@
 #include "../../../includes/RX/synchronizer.hpp"
 
 std::vector<std::complex<double>>
-synchronizer::costas_loop(const std::vector<std::complex<double>> &samples) {
+synchronizer::costas_loop(const std::vector<std::complex<double>> &samples,
+                          const int L, const double BnTs, const double Kp,
+                          const int mod_order) {
+  const double zeta = std::sqrt(2.0) / 2.0;
+
+  double theta = BnTs / (zeta + 0.25 / zeta);
+  double denom = 1 + 2 * zeta * theta + theta * theta;
+
+  double K1 = 4 * zeta * theta / (denom * Kp);
+  double K2 = 4 * theta * theta / (denom * Kp);
+
+  double phase = 0.0;
+  double freq = 0.0;
+
+  double err;
+
   std::vector<std::complex<double>> out(samples.size());
 
-  double theta = 0;
-  double freq = 0;
+  double ROT = M_PI / 4;
 
-  const double Kp = 0.02;
-  const double Ki = 0.0001;
+  auto sign = [](double x) { return (x > 0) - (x < 0); };
 
-  for (int n = 0; n < samples.size(); ++n) {
-    std::complex<double> r =
-        samples[n] * std::exp(std::complex<double>(0, -theta));
-    out[n] = r;
+  for (size_t i = 0; i < samples.size(); ++i) {
+    std::complex<double> rot(std::cos(phase), -std::sin(phase));
 
-    double l = r.real();
-    double Q = r.imag();
+    std::complex<double> sample = samples[i];
 
-    double I_hat = (l >= 0.0) ? 1 : -1;
-    double Q_hat = (Q >= 0.0) ? 1 : -1;
+    out[i] = sample * rot;
 
-    double error = I_hat * Q - Q_hat * l;
-    error = std::clamp(error, -1.0, 1.0);
+    double re = out[i].real();
+    double im = out[i].imag();
 
-    freq += Ki * error;
-    theta += freq + Kp * error;
-    theta = std::fmod(theta + M_PI, 2 * M_PI) - M_PI;
+    if (mod_order == 2) {
+      double d = (re + im >= 0) ? 1.0 : -1.0;
+      err = d * (im - re);
+    } else {
+      err = sign(re) * im - sign(im) * re;
+    }
+
+    freq += K2 * err;
+    phase += freq + K1 * err;
   }
 
   return out;

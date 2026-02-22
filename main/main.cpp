@@ -281,9 +281,9 @@ int main(int argc, char *argv[]) {
   /*init RX config*/
   rx_cfg rx_config;
   rx_config.run = true;
-  rx_config.costas_Ki = 1;
+  rx_config.costas_BnTs = 0.5;
   rx_config.costas_Kp = 1;
-  rx_config.gardner_BnTs = 0.000005;
+  rx_config.gardner_BnTs = 0.5;
   rx_config.gardner_Kp = 1;
   rx_config.IR_type = 1;
   rx_config.mod_order = 2;

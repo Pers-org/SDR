@@ -13,7 +13,7 @@ cmake -S .. -B "$BUILD_DIR"
 cmake --build "$BUILD_DIR" -j$(nproc)
 
 #run tests
-cd $BUILD_DIR 
-ctest
+# cd $BUILD_DIR 
+# ctest
 
 

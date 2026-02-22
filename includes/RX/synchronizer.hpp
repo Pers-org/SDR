@@ -47,7 +47,7 @@ public:
    *
    * @return symbols with phase correction
    */
-  void coarse_freq_offset(const std::vector<std::complex<int16_t>> &samples,
+  void coarse_freq_offset(const std::vector<std::complex<double>> &samples,
                           rx_cfg &rx_config, int Fs);
 
   /**
@@ -60,8 +60,8 @@ public:
    * @return symbols with phase correction
    */
   std::vector<std::complex<double>>
-  costas_loop(const std::vector<std::complex<double>> &samples);
-
+  costas_loop(const std::vector<std::complex<double>> &samples, const int L,
+              const double BnTs, const double Kp, const int mod_order);
   /**
    * @brief symbol sync. This method find start of symbol
    *

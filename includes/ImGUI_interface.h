@@ -26,12 +26,12 @@ struct rx_cfg {
   int IR_type;   // 0-Rectangle, 1-Raised-Cosine
 
   // gardner params
-  float gardner_BnTs;
-  float gardner_Kp;
+  double gardner_BnTs;
+  double gardner_Kp;
 
   // costas params
-  float costas_Kp;
-  float costas_Ki;
+  double costas_Kp;
+  double costas_BnTs;
 
   // buffers
   std::vector<std::complex<int16_t>> rx_samples;
@@ -42,7 +42,11 @@ struct rx_cfg {
   std::pair<std::vector<std::complex<double>>, std::vector<double>>
       CFO_spectrum;
   std::pair<std::vector<std::complex<double>>, std::vector<double>>
-      post_cfo_signal;
+      post_CFO_spectrum;
+  std::vector<std::complex<double>> post_cfo_signal;
+  std::pair<std::vector<std::complex<double>>, std::vector<double>>
+      post_fine_CFO_spectrum;
+  std::vector<std::complex<double>> post_costas;
 };
 
 void run_gui(tx_cfg &tx_config, rx_cfg &rx_config, sdr_config_t &sdr_config);
