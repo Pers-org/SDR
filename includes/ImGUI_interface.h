@@ -8,11 +8,12 @@
 
 struct tx_cfg {
   bool run; // for stop work
-
   int bitrate;
   int mod_order; // 2-BPSK, 4-QPSK, 16-QAM16
   int sps;       // samples per symbol
   int IR_type;   // 0-Rectangle, 1-Raised-Cosine
+  int OFDM;      // 0 - OFDM 0FF, 1 - OFDM ON
+  int Nc;        // subcarriers count
   std::vector<int16_t> bits;
   std::vector<std::complex<double>> symbols;
   std::vector<std::complex<int16_t>> tx_samples;
@@ -24,6 +25,8 @@ struct rx_cfg {
   int mod_order; // 2-BPSK, 4-QPSK, 16-QAM16
   int sps;       // samples per symbol
   int IR_type;   // 0-Rectangle, 1-Raised-Cosine
+  int OFDM;      // 0 - OFDM 0FF, 1 - OFDM ON
+  int Nc;        // subcarriers count
 
   // gardner params
   double gardner_BnTs;

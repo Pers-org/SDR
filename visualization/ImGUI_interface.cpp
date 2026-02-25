@@ -132,6 +132,10 @@ void run_gui(tx_cfg &tx_config, rx_cfg &rx_config, sdr_config_t &sdr_config) {
             ImGui::RadioButton("Rectangle", &tx_config.IR_type, 0);
             ImGui::RadioButton("Rised-Cosine", &tx_config.IR_type, 1);
 
+            ImGui::SeparatorText("Technology");
+            ImGui::RadioButton("OFDM", &tx_config.OFDM, 1);
+            ImGui::RadioButton("Non-OFDM", &tx_config.OFDM, 0);
+
             ImGui::EndChild();
           }
 

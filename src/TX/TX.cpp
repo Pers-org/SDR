@@ -17,36 +17,55 @@
 #include "../../includes/ImGUI_interface.h"
 #include "../../includes/Transmitter.hpp"
 #include "../../includes/general/subfuncs.hpp"
+#include "ifft.hpp"
+void TX_proccesing(tx_cfg &config, const sdr_config_t &sdr_cfg) {
 
-void TX_proccesing(tx_cfg &config) {
+  if (!config.OFDM) {
+    int barker_code_size = 4;
+    /*tx object*/
+    transmitter TX;
 
-  int barker_code_size = 4;
-  /*tx object*/
-  transmitter TX;
+    /*create rectangle IR*/
+    std::vector<double> IR(config.sps, 1);
 
-  /*create rectangle IR*/
-  std::vector<double> IR(config.sps, 1);
+    /*TX work logic*/
 
-  /*TX work logic*/
+    /*generate barker code*/
+    std::vector<int16_t> barker_code =
+        TX.overhead_encoder_.generate_barker_code(barker_code_size);
 
-  /*generate barker code*/
-  std::vector<int16_t> barker_code =
-      TX.overhead_encoder_.generate_barker_code(barker_code_size);
+    /*append sync sequence*/
+    std::vector<int16_t> overhead_bits =
+        TX.overhead_encoder_.add_sync_seq_to_message(config.bits, barker_code);
 
-  /*append sync sequence*/
-  std::vector<int16_t> overhead_bits =
-      TX.overhead_encoder_.add_sync_seq_to_message(config.bits, barker_code);
+    /*bits -> QAM symbols*/
+    config.symbols =
+        std::move(TX.modulator_.QAM(config.mod_order, config.bits));
 
-  /*bits -> QAM symbols*/
-  config.symbols = std::move(TX.modulator_.QAM(config.mod_order, config.bits));
+    /*QAM symbols -> upsampling QAM symbols*/
+    std::vector<std::complex<double>> ups_symbols =
+        TX.filter_.upsampling(config.symbols, config.sps);
 
-  /*QAM symbols -> upsampling QAM symbols*/
-  std::vector<std::complex<double>> ups_symbols =
-      TX.filter_.upsampling(config.symbols, config.sps);
+    std::vector<std::complex<double>> samples =
+        TX.filter_.convolve(ups_symbols, IR, config.sps);
 
-  std::vector<std::complex<double>> samples =
-      TX.filter_.convolve(ups_symbols, IR, config.sps);
+    /*upsampling QAM symbols -> upscale samples (for pluto SDR)*/
+    config.tx_samples = std::move(upscaling(samples));
+  } else {
 
-  /*upsampling QAM symbols -> upscale samples (for pluto SDR)*/
-  config.tx_samples = std::move(upscaling(samples));
+    if (config.bits.size() % config.Nc != 0) {
+      spdlog::error("[TX.cpp]: Invalid bits size!");
+      return;
+    }
+
+    /*bits -> QAM symbols*/
+    config.symbols =
+        std::move(TX.modulator_.QAM(config.mod_order, config.bits));
+
+    /*QAM symbols -> IFFT -> OFDM signal*/
+    int batch_size = config.bits.size() / config.Nc;
+
+    config.tx_samples =
+        ifft_batch(config.symbols, batch_size, sdr_cfg.tx_sample_rate);
+  }
 }

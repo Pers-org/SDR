@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <complex>
 #include <fftw3.h>
+#include <spdlog/spdlog.h>
 #include <vector>
 
 template <typename T> inline void fft_shift(std::vector<T> &fft_samples) {

@@ -54,12 +54,6 @@ for i in range(N_symb):
 ax1.plot(t_signal, [0] * len(t_signal), ofdm_signal) 
 ax2.plot(np.fft.fftshift(np.fft.fftfreq(len(ofdm_signal), 1/Fs)), [0] * (len(t_signal)) , 10 * np.log10(np.abs(np.fft.fftshift(np.fft.fft(ofdm_signal)))))
 
-# fig = plt.figure(2)
-
-# ax3 = fig.add_subplot(111, projection='3d')
-# ax3.plot(np.fft.fftshift(np.fft.fftfreq(len(ofdm_signal), 1/Fs)), [0] * len(t_sym) , np.abs(np.fft.fftshift(np.fft.fft(ofdm_signal))))
-
-
 ax1.set_xlabel('Time, s')
 ax1.set_ylabel('Subcarrier number')
 ax1.set_zlabel('Amplitude')
@@ -70,31 +64,27 @@ ax2.set_ylabel('Subcarrier number')
 ax2.set_zlabel('S(f)')
 ax2.set_title('OFDM subcarriers spectrum')
 
-# ax3.set_xlabel('frequency, Hz')
-# ax3.set_ylabel('Subcarrier number')
-# ax3.set_zlabel('S(f)')
-# ax3.set_title('OFDM subcarriers spectrum')
 
 plt.show()
 
 
-plt.subplot(2, 1, 1)
-plt.plot(t_sym, ofdm_signal)
-plt.xlabel("time, s")
-plt.ylabel("S(t)")
-plt.title("OFDM symbol (TX)")
+# plt.subplot(2, 1, 1)
+# plt.plot(t_sym, ofdm_signal)
+# plt.xlabel("time, s")
+# plt.ylabel("S(t)")
+# plt.title("OFDM symbol (TX)")
 
-plt.subplot(2, 1, 2)
-plt.plot(np.fft.fftshift(np.fft.fftfreq(len(ofdm_signal), 1/Fs)), np.abs(np.fft.fftshift(np.fft.fft(ofdm_signal))))
-plt.xlabel("frequency, Hz")
-plt.ylabel("S(f)")
-plt.title("OFDM spectrum (RX)")
+# plt.subplot(2, 1, 2)
+# plt.plot(np.fft.fftshift(np.fft.fftfreq(len(ofdm_signal), 1/Fs)), np.abs(np.fft.fftshift(np.fft.fft(ofdm_signal))))
+# plt.xlabel("frequency, Hz")
+# plt.ylabel("S(f)")
+# plt.title("OFDM spectrum (RX)")
 
 
-plt.show()
+# plt.show()
 
 for sc_n in range(Nc):
-    sc = 1/(np.sqrt(T) * Fs) * np.sum(ofdm_signal * np.exp(-1j*2*np.pi * (fc + sc_n*df) * t_sym))
+    sc = 1/(np.sqrt(T) * Fs) * np.sum(ofdm_signal * np.exp(-1j*2*np.pi * (fc + sc_n*df) * t_signal))
 
     plt.scatter(np.real(sc), np.imag(sc), color="green")
 
