@@ -51,7 +51,7 @@ void RX_proccesing(rx_cfg &rx_config, sdr_config_t &sdr_config) {
 
   /*FFT*/
 
-  // rx_config.spectrum = fft(rx_config.rx_samples, sdr_config.rx_sample_rate);
+  rx_config.spectrum = fft(rx_config.rx_samples, sdr_config.rx_sample_rate);
 
   // /*generate barker code*/
   // std::vector<int16_t> barker_code =

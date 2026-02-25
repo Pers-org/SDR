@@ -214,18 +214,16 @@ void run_gui(tx_cfg &tx_config, rx_cfg &rx_config, sdr_config_t &sdr_config) {
               ImPlot::EndPlot();
             }
 
-            // if (ImPlot::BeginPlot("I/Q samples",
-            //                       ImVec2(-1, plot_height)))
-            // {
-            //   ImPlot::SetupAxes("Time", "Amplitude");
-            //   ImPlot::PlotLineG("I component", get_I<int16_t>,
-            //                     &rx_config.rx_samples,
-            //                     rx_config.rx_samples.size());
-            //   ImPlot::PlotLineG("Q component", get_Q<int16_t>,
-            //                     &rx_config.rx_samples,
-            //                     rx_config.rx_samples.size());
-            //   ImPlot::EndPlot();
-            // }
+            if (ImPlot::BeginPlot("I/Q samples", ImVec2(-1, plot_height))) {
+              ImPlot::SetupAxes("Time", "Amplitude");
+              ImPlot::PlotLineG("I component", get_I<int16_t>,
+                                &rx_config.rx_samples,
+                                rx_config.rx_samples.size());
+              ImPlot::PlotLineG("Q component", get_Q<int16_t>,
+                                &rx_config.rx_samples,
+                                rx_config.rx_samples.size());
+              ImPlot::EndPlot();
+            }
 
             if (ImPlot::BeginPlot("POST CFO spectrum",
                                   ImVec2(-1, plot_height))) {
@@ -245,25 +243,22 @@ void run_gui(tx_cfg &tx_config, rx_cfg &rx_config, sdr_config_t &sdr_config) {
               ImPlot::EndPlot();
             }
 
-            // if (ImPlot::BeginPlot("Amplitude spectrum",
-            //                       ImVec2(-1, plot_height)))
-            // {
-            //   ImPlot::SetupAxes("frequency", "Amplitude");
-            //   ImPlot::PlotLineG("I component", get_amp_spec,
-            //                     &rx_config.spectrum.first,
-            //                     rx_config.spectrum.first.size());
-            //   ImPlot::EndPlot();
-            // }
+            if (ImPlot::BeginPlot("Amplitude spectrum",
+                                  ImVec2(-1, plot_height))) {
+              ImPlot::SetupAxes("frequency", "Amplitude");
+              ImPlot::PlotLineG("I component", get_amp_spec,
+                                &rx_config.spectrum.first,
+                                rx_config.spectrum.first.size());
+              ImPlot::EndPlot();
+            }
 
-            // if (ImPlot::BeginPlot("Phase spectrum",
-            //                       ImVec2(-1, plot_height)))
-            // {
-            //   ImPlot::SetupAxes("frequency", "Amplitude");
-            //   ImPlot::PlotLineG("I component", get_phase_spec,
-            //                     &rx_config.spectrum,
-            //                     rx_config.spectrum.first.size());
-            //   ImPlot::EndPlot();
-            // }
+            if (ImPlot::BeginPlot("Phase spectrum", ImVec2(-1, plot_height))) {
+              ImPlot::SetupAxes("frequency", "Amplitude");
+              ImPlot::PlotLineG("I component", get_phase_spec,
+                                &rx_config.spectrum,
+                                rx_config.spectrum.first.size());
+              ImPlot::EndPlot();
+            }
 
             if (ImPlot::BeginPlot("Before Gardner I/Q constellation",
                                   ImVec2(-1, plot_height))) {
@@ -305,16 +300,15 @@ void run_gui(tx_cfg &tx_config, rx_cfg &rx_config, sdr_config_t &sdr_config) {
               ImPlot::EndPlot();
             }
 
-            // if (ImPlot::BeginPlot("Correlation function",
-            //                       ImVec2(-1, plot_height)))
-            // {
-            //   ImPlot::SetupAxes("Time", "Amplitude");
-            //   ImPlot::PlotLineG("I component", get_value<double>,
-            //                     &rx_config.corr_func,
-            //                     rx_config.corr_func.size());
+            if (ImPlot::BeginPlot("Correlation function",
+                                  ImVec2(-1, plot_height))) {
+              ImPlot::SetupAxes("Time", "Amplitude");
+              ImPlot::PlotLineG("I component", get_value<double>,
+                                &rx_config.corr_func,
+                                rx_config.corr_func.size());
 
-            //   ImPlot::EndPlot();
-            // }
+              ImPlot::EndPlot();
+            }
 
             ImGui::EndChild();
           }
