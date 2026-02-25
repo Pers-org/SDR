@@ -18,4 +18,4 @@ public:
       overhead_encoder_; /**< generate overheads (CRC, sync sequence)*/
 };
 
-void TX_proccesing(tx_cfg &config);
+void TX_proccesing(tx_cfg &config, const sdr_config_t &sdr_config);

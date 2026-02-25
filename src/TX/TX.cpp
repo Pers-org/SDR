@@ -19,11 +19,11 @@
 #include "../../includes/general/subfuncs.hpp"
 #include "ifft.hpp"
 void TX_proccesing(tx_cfg &config, const sdr_config_t &sdr_cfg) {
+  /*tx object*/
+  transmitter TX;
 
   if (!config.OFDM) {
     int barker_code_size = 4;
-    /*tx object*/
-    transmitter TX;
 
     /*create rectangle IR*/
     std::vector<double> IR(config.sps, 1);
@@ -64,8 +64,11 @@ void TX_proccesing(tx_cfg &config, const sdr_config_t &sdr_cfg) {
 
     /*QAM symbols -> IFFT -> OFDM signal*/
     int batch_size = config.bits.size() / config.Nc;
+    std::vector<double> time;
 
-    config.tx_samples =
+    std::vector<std::complex<double>> ofdm_signal =
         ifft_batch(config.symbols, batch_size, sdr_cfg.tx_sample_rate);
+
+    config.tx_samples = upscaling(ofdm_signal);
   }
 }

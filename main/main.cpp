@@ -278,6 +278,7 @@ int main(int argc, char *argv[]) {
   tx_config.IR_type = 0;
   tx_config.tx_samples.resize(sdr_config.buff_size);
   tx_config.OFDM = 0;
+  tx_config.Nc = 2;
 
   /*init RX config*/
   rx_cfg rx_config;
