@@ -7,21 +7,21 @@ std::complex<double>
 synchronizer::corr(const std::vector<std::complex<int16_t>> &symbols,
                    const std::vector<std::complex<int16_t>> &sync_seq_symb) {
   if (symbols.size() != sync_seq_symb.size()) {
-    printf("Vector must be the same size\n");
-    return {0, 0};
+    spdlog::error("Vectors must be the same size");
+    return {0.0, 0.0};
   }
 
-  std::complex<double> result{0, 0};
+  std::complex<double> sum{0.0, 0.0};
 
   for (int i = 0; i < symbols.size(); ++i) {
-    std::complex<double> symb = {std::real(symbols[i]), std::imag(symbols[i])};
-    std::complex<double> seq = {std::real(sync_seq_symb[i]),
-                                std::imag(sync_seq_symb[i])};
-
-    result += symb * seq;
+    std::complex<double> x{static_cast<double>(symbols[i].real()),
+                           static_cast<double>(symbols[i].imag())};
+    std::complex<double> y{static_cast<double>(sync_seq_symb[i].real()),
+                           static_cast<double>(sync_seq_symb[i].imag())};
+    sum += x * std::conj(y);
   }
 
-  return result;
+  return sum;
 }
 
 double synchronizer::norm_corr(
@@ -33,8 +33,8 @@ double synchronizer::norm_corr(
   double norm_coeff_b = 0.0;
 
   for (int i = 0; i < symbols.size(); ++i) {
-    norm_coeff_a += std::norm(std::complex<int16_t>(symbols[i]));
-    norm_coeff_b += std::norm(std::complex<int16_t>(sync_seq_symb[i]));
+    norm_coeff_a += std::norm(std::complex<double>((double)symbols[i]));
+    norm_coeff_b += std::norm(std::complex<double>(double)sync_seq_symb[i]));
   }
 
   return std::abs(unnormal_cor) / std::sqrt(norm_coeff_a * norm_coeff_b);
