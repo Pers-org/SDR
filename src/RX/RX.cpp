@@ -34,82 +34,89 @@ int_to_double(const std::vector<std::complex<int16_t>> &samples) {
 
 void RX_proccesing(rx_cfg &rx_config, sdr_config_t &sdr_config) {
 
-  std::vector<double> IR(rx_config.sps, 1); // matched filter IR
-  int barker_code_size = 13;
-  /*RX object*/
   receiver RX;
-  modulator modulator_;
-  overhead_encoder overhead_encoder_;
 
-  std::vector<std::complex<double>> samples =
-      int_to_double(rx_config.rx_samples);
+  if (!rx_config.OFDM) {
 
-  /*CFO*/
+    std::vector<double> IR(rx_config.sps, 1); // matched filter IR
+    int barker_code_size = 13;
+    /*RX object*/
+    modulator modulator_;
+    overhead_encoder overhead_encoder_;
 
-  RX.synchronizer_.coarse_freq_offset(samples, rx_config,
-                                      sdr_config.rx_sample_rate);
+    std::vector<std::complex<double>> samples =
+        int_to_double(rx_config.rx_samples);
 
-  /*FFT*/
+    /*CFO*/
 
-  rx_config.spectrum = fft(rx_config.rx_samples, sdr_config.rx_sample_rate);
+    RX.synchronizer_.coarse_freq_offset(samples, rx_config,
+                                        sdr_config.rx_sample_rate);
 
-  // /*generate barker code*/
-  // std::vector<int16_t> barker_code =
-  //     overhead_encoder_.generate_barker_code(barker_code_size);
+    /*FFT*/
 
-  // /*barker code -> symbols*/
-  // std::vector<std::complex<double>> barker_code_symb =
-  //     modulator_.QAM(rx_config.mod_order, barker_code);
+    rx_config.spectrum = fft(rx_config.rx_samples, sdr_config.rx_sample_rate);
 
-  /*RX work logic*/
+    // /*generate barker code*/
+    // std::vector<int16_t> barker_code =
+    //     overhead_encoder_.generate_barker_code(barker_code_size);
 
-  /*coarse freq sync*/
-  // std::vector<std::complex<double>> cfo_symbols =
-  //     RX.synchronizer_.coarse_freq_offset(samples2, barker_code_size);
+    // /*barker code -> symbols*/
+    // std::vector<std::complex<double>> barker_code_symb =
+    //     modulator_.QAM(rx_config.mod_order, barker_code);
 
-  /*send samples to mathced filter to increase SNR*/
-  rx_config.mf_samples_out = std::move(downscaler(
-      RX.mf_filter_.convolve(rx_config.post_cfo_signal, IR, rx_config.sps)));
+    /*RX work logic*/
 
-  /*symbol sync (gardner scheme). Find offsets for each symbol*/
-  std::vector<int16_t> offsets =
-      RX.synchronizer_.gardner(rx_config.mf_samples_out, rx_config.sps,
-                               rx_config.gardner_Kp, rx_config.gardner_BnTs);
+    /*coarse freq sync*/
+    // std::vector<std::complex<double>> cfo_symbols =
+    //     RX.synchronizer_.coarse_freq_offset(samples2, barker_code_size);
 
-  /*samples -> symbols*/
-  rx_config.raw_symbols = RX.mf_filter_.downsampling(rx_config.mf_samples_out,
-                                                     offsets, rx_config.sps);
+    /*send samples to mathced filter to increase SNR*/
+    rx_config.mf_samples_out = std::move(downscaler(
+        RX.mf_filter_.convolve(rx_config.post_cfo_signal, IR, rx_config.sps)));
 
-  rx_config.post_costas = RX.synchronizer_.costas_loop(
-      rx_config.raw_symbols, 1, rx_config.costas_BnTs, rx_config.costas_Kp,
-      rx_config.mod_order);
+    /*symbol sync (gardner scheme). Find offsets for each symbol*/
+    std::vector<int16_t> offsets =
+        RX.synchronizer_.gardner(rx_config.mf_samples_out, rx_config.sps,
+                                 rx_config.gardner_Kp, rx_config.gardner_BnTs);
 
-  // /*get corr_coeffs (simulate correlation receiving)*/
-  // rx_config.corr_func =
-  //     RX.synchronizer_.corr_receiving(rx_config.raw_symbols,
-  //     barker_code_symb);
+    /*samples -> symbols*/
+    rx_config.raw_symbols = RX.mf_filter_.downsampling(rx_config.mf_samples_out,
+                                                       offsets, rx_config.sps);
 
-  // /*find peak of correlation (start packet)*/
-  // int start_sync = RX.synchronizer_.find_sync_index(corr_coeffs);
+    rx_config.post_costas = RX.synchronizer_.costas_loop(
+        rx_config.raw_symbols, 1, rx_config.costas_BnTs, rx_config.costas_Kp,
+        rx_config.mod_order);
 
-  // /*slice symbols*/
-  // std::vector<std::complex<double>> slice_symbols(symbols.begin() + 0,
-  //                                                 symbols.end());
+    // /*get corr_coeffs (simulate correlation receiving)*/
+    // rx_config.corr_func =
+    //     RX.synchronizer_.corr_receiving(rx_config.raw_symbols,
+    //     barker_code_symb);
 
-  // /*fine freq sync*/
-  // std::vector<std::complex<double>> post_costas =
-  //     RX.synchronizer_.costas_loop(slice_symbols);
+    // /*find peak of correlation (start packet)*/
+    // int start_sync = RX.synchronizer_.find_sync_index(corr_coeffs);
 
-  // /*cut barker*/
-  // std::vector<std::complex<double>> wo_barker(
-  //     post_costas.begin() + barker_code_size, post_costas.end());
+    // /*slice symbols*/
+    // std::vector<std::complex<double>> slice_symbols(symbols.begin() + 0,
+    //                                                 symbols.end());
 
-  /*symbols -> true symbols (quantization)*/
-  // std::vector<std::complex<double>> true_symbols =
-  //     RX.demodulator_.QAM_quantizater(rx_config.raw_symbols,
-  //     rx_config.mod_order);
+    // /*fine freq sync*/
+    // std::vector<std::complex<double>> post_costas =
+    //     RX.synchronizer_.costas_loop(slice_symbols);
 
-  // /*true symbols -> bits*/
-  // std::vector<int16_t> bits =
-  //     RX.demodulator_.QAM_demodulator(true_symbols, rx_config.mod_order);
+    // /*cut barker*/
+    // std::vector<std::complex<double>> wo_barker(
+    //     post_costas.begin() + barker_code_size, post_costas.end());
+
+    /*symbols -> true symbols (quantization)*/
+    // std::vector<std::complex<double>> true_symbols =
+    //     RX.demodulator_.QAM_quantizater(rx_config.raw_symbols,
+    //     rx_config.mod_order);
+
+    // /*true symbols -> bits*/
+    // std::vector<int16_t> bits =
+    //     RX.demodulator_.QAM_demodulator(true_symbols, rx_config.mod_order);
+  } else {
+    rx_config.corr_func = RX.synchronizer_.OFDM_corr_receive(
+        rx_config.rx_samples, rx_config.Nc, rx_config.CP_size);
+  }
 }

@@ -1,4 +1,6 @@
 /build
 /docs
 *.txt
-/myenv
+!lts.txt
+/venv
+__pycache__

@@ -14,6 +14,9 @@ struct tx_cfg {
   int IR_type;   // 0-Rectangle, 1-Raised-Cosine
   int OFDM;      // 0 - OFDM 0FF, 1 - OFDM ON
   int Nc;        // subcarriers count
+  int CP_size;   // Cyclic prefix size
+  int count_OFDM_symb;
+
   std::vector<int16_t> bits;
   std::vector<std::complex<double>> symbols;
   std::vector<std::complex<int16_t>> tx_samples;
@@ -27,6 +30,8 @@ struct rx_cfg {
   int IR_type;   // 0-Rectangle, 1-Raised-Cosine
   int OFDM;      // 0 - OFDM 0FF, 1 - OFDM ON
   int Nc;        // subcarriers count
+  int CP_size;   // Cyclic prefix size
+  int count_OFDM_symb;
 
   // gardner params
   double gardner_BnTs;

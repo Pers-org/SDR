@@ -19,8 +19,8 @@ private:
    * @return correlation
    */
   std::complex<double>
-  corr(const std::vector<std::complex<double>> &symbols,
-       const std::vector<std::complex<double>> &sync_seq_symb);
+  corr(const std::vector<std::complex<int16_t>> &symbols,
+       const std::vector<std::complex<int16_t>> &sync_seq_symb);
 
   /**
    * @brief calculate normalized correlation b/w receive symbols and sync
@@ -31,8 +31,8 @@ private:
    *
    * @return correlation coefficient [0;1]
    */
-  double norm_corr(const std::vector<std::complex<double>> &symbols,
-                   const std::vector<std::complex<double>> &sync_seq_symb);
+  double norm_corr(const std::vector<std::complex<int16_t>> &symbols,
+                   const std::vector<std::complex<int16_t>> &sync_seq_symb);
 
 public:
   /**
@@ -88,8 +88,8 @@ public:
    * @return vector of shifts for each symbol
    */
   std::vector<double>
-  corr_receiving(const std::vector<std::complex<double>> &symbols,
-                 const std::vector<std::complex<double>> &sync_symbols);
+  OFDM_corr_receive(const std::vector<std::complex<int16_t>> &samples,
+                    const int symb_size, const int CP_size);
 
   /**
    * @brief Frame sync. Find start of sync sequence (start of sync_seq)

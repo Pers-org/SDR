@@ -15,9 +15,10 @@
 
 /*user functions*/
 #include "../../includes/ImGUI_interface.h"
+#include "../../includes/OFDM.hpp"
 #include "../../includes/Transmitter.hpp"
 #include "../../includes/general/subfuncs.hpp"
-#include "ifft.hpp"
+
 void TX_proccesing(tx_cfg &config, const sdr_config_t &sdr_cfg) {
   /*tx object*/
   transmitter TX;
@@ -53,21 +54,17 @@ void TX_proccesing(tx_cfg &config, const sdr_config_t &sdr_cfg) {
     config.tx_samples = std::move(upscaling(samples));
   } else {
 
-    if (config.bits.size() % config.Nc != 0) {
-      spdlog::error("[TX.cpp]: Invalid bits size!");
-      return;
-    }
+    const int N = config.Nc * config.count_OFDM_symb *
+                  static_cast<int>(std::sqrt(config.mod_order));
+    config.bits = bits_gen(N);
 
     /*bits -> QAM symbols*/
-    config.symbols =
-        std::move(TX.modulator_.QAM(config.mod_order, config.bits));
+    config.symbols = TX.modulator_.QAM(config.mod_order, config.bits);
 
     /*QAM symbols -> IFFT -> OFDM signal*/
-    int batch_size = config.bits.size() / config.Nc;
-    std::vector<double> time;
-
     std::vector<std::complex<double>> ofdm_signal =
-        ifft_batch(config.symbols, batch_size, sdr_cfg.tx_sample_rate);
+        batch_ifft(config.symbols, config.count_OFDM_symb);
+    ofdm_signal = add_CP(ofdm_signal, config);
 
     config.tx_samples = upscaling(ofdm_signal);
   }
