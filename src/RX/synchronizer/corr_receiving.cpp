@@ -1,7 +1,7 @@
-#include <complex>
-#include <vector>
-
 #include "../../../includes/RX/synchronizer.hpp"
+#include <complex>
+#include <spdlog/spdlog.h>
+#include <vector>
 
 std::complex<double>
 synchronizer::corr(const std::vector<std::complex<int16_t>> &symbols,
@@ -33,8 +33,10 @@ double synchronizer::norm_corr(
   double norm_coeff_b = 0.0;
 
   for (int i = 0; i < symbols.size(); ++i) {
-    norm_coeff_a += std::norm(std::complex<double>((double)symbols[i]));
-    norm_coeff_b += std::norm(std::complex<double>(double)sync_seq_symb[i]));
+    norm_coeff_a += std::norm(
+        std::complex<double>(std::real(symbols[i]), std::imag(symbols[i])));
+    norm_coeff_b += std::norm(std::complex<double>(
+        std::real(sync_seq_symb[i]), std::imag(sync_seq_symb[i])));
   }
 
   return std::abs(unnormal_cor) / std::sqrt(norm_coeff_a * norm_coeff_b);

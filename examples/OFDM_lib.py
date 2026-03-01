@@ -26,24 +26,37 @@ def OFDM(mod_type, Nsc, Nsymb, CP_size):
     global bits
     # generate bits
     bits = np.random.randint(0, 2, N)
+    # print("BITS:", bits)
 
     #bits -> symbols
     symbols = md.QAM_mod(mod_type=mod_type, bits=bits)
+    # print("SYMBOLS:", *symbols)
 
     #dived on blocks with size Nc (subcarriers count)
     symbols = list(batched(symbols, Nsc))
 
     #symbols -> IFFT -> timing representation
     OFDM_signal = []
+    OFDM_symbols = []
 
     for block in symbols:
-        ofdm_symbol = np.fft.ifft(block) * np.sqrt(Nsc)
-
+        OFDM_symbols.append(np.fft.ifft(block))
         #add cyclic prefix
-        ofdm_symbol = OFDM_add_CP(OFDM_symbol=ofdm_symbol, CP_size=CP_size)
-        OFDM_signal.extend(ofdm_symbol)
-
-    return OFDM_signal
+        ofdm_symbol = OFDM_add_CP(OFDM_symbol=OFDM_symbols[-1], CP_size=CP_size)
+        OFDM_signal.append(ofdm_symbol)
+    
+    # print("SYMBOLS")
+    # for i in range(len(OFDM_symbols)):
+    #     for j in range(len(OFDM_symbols[0])):
+    #         print(OFDM_symbols[i][j])
+    #     print("\n\n")
+    
+    # print("Signal")
+    # for i in range(len(OFDM_signal)):
+    #     for j in range(len(OFDM_signal[0])):
+    #         print(OFDM_signal[i][j])
+    #     print("\n\n")
+    return bits, np.concatenate(OFDM_signal)
 
 def OFDM_add_CP(OFDM_symbol, CP_size):
     CP = OFDM_symbol[-CP_size:]
@@ -60,6 +73,9 @@ def norm_corr(a, b):
     
     norm_a = np.sum(np.abs(a)**2)
     norm_b = np.sum(np.abs(b)**2)
+
+    if (np.sqrt(norm_a) * np.sqrt(norm_b)) == 0:
+        return 0
 
     return np.abs(corr(a,b) / (np.sqrt(norm_a) * np.sqrt(norm_b)))
 
@@ -78,8 +94,8 @@ def cross_corr(a, b):
 
     return corr_func
 
-def find_peaks(corr_function, alpha):
-    peaks = []
+def my_find_peaks(corr_function, alpha, period):
+    peaks = [0]
     for i in range(1, len(corr_function)-1):
         cur = corr_function[i]
         prev = corr_function[i-1]
@@ -88,5 +104,5 @@ def find_peaks(corr_function, alpha):
         if cur > prev and cur > next and cur > alpha:
             peaks.append(i)
 
-    return peaks
+    return peaks[1:]
         

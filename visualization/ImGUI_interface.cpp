@@ -237,17 +237,16 @@ void run_gui(tx_cfg &tx_config, rx_cfg &rx_config, sdr_config_t &sdr_config) {
             //   ImPlot::EndPlot();
             // }
 
-            // if (ImPlot::BeginPlot("I/Q samples", ImVec2(-1, plot_height)))
-            // {
-            //   ImPlot::SetupAxes("Time", "Amplitude");
-            //   ImPlot::PlotLineG("I component", get_I<int16_t>,
-            //                     &rx_config.rx_samples,
-            //                     rx_config.rx_samples.size());
-            //   ImPlot::PlotLineG("Q component", get_Q<int16_t>,
-            //                     &rx_config.rx_samples,
-            //                     rx_config.rx_samples.size());
-            //   ImPlot::EndPlot();
-            // }
+            if (ImPlot::BeginPlot("I/Q samples", ImVec2(-1, plot_height))) {
+              ImPlot::SetupAxes("Time", "Amplitude");
+              ImPlot::PlotLineG("I component", get_I<int16_t>,
+                                &rx_config.rx_samples,
+                                rx_config.rx_samples.size());
+              ImPlot::PlotLineG("Q component", get_Q<int16_t>,
+                                &rx_config.rx_samples,
+                                rx_config.rx_samples.size());
+              ImPlot::EndPlot();
+            }
 
             // if (ImPlot::BeginPlot("POST CFO spectrum",
             //                       ImVec2(-1, plot_height)))
@@ -312,15 +311,14 @@ void run_gui(tx_cfg &tx_config, rx_cfg &rx_config, sdr_config_t &sdr_config) {
             //   ImPlot::EndPlot();
             // }
 
-            // if (ImPlot::BeginPlot("Post Gardner I/Q constellation",
-            //                       ImVec2(-1, plot_height)))
-            // {
-            //   ImPlot::PlotScatterG("Symbols", get_points<double>,
-            //                        &rx_config.raw_symbols,
-            //                        rx_config.raw_symbols.size());
+            if (ImPlot::BeginPlot("Post Gardner I/Q constellation",
+                                  ImVec2(-1, plot_height))) {
+              ImPlot::PlotScatterG("Symbols", get_points<double>,
+                                   &rx_config.raw_symbols,
+                                   rx_config.raw_symbols.size());
 
-            //   ImPlot::EndPlot();
-            // }
+              ImPlot::EndPlot();
+            }
 
             // if (ImPlot::BeginPlot("Post Costas Loop I/Q constellation",
             //                       ImVec2(-1, plot_height)))

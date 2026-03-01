@@ -12,9 +12,11 @@
 #include <vector>
 
 #include "../../includes/ImGUI_interface.h"
+#include "../../includes/OFDM.hpp"
 #include "../../includes/Receiver.hpp"
 #include "../../includes/TX/modulator.hpp"
 #include "../../includes/TX/overhead_encoder.hpp"
+#include "../../includes/find_peaks.hpp"
 #include "../../includes/general/subfuncs.hpp"
 #include "./fft.hpp"
 
@@ -116,7 +118,29 @@ void RX_proccesing(rx_cfg &rx_config, sdr_config_t &sdr_config) {
     // std::vector<int16_t> bits =
     //     RX.demodulator_.QAM_demodulator(true_symbols, rx_config.mod_order);
   } else {
-    rx_config.corr_func = RX.synchronizer_.OFDM_corr_receive(
-        rx_config.rx_samples, rx_config.Nc, rx_config.CP_size);
+    rx_config.corr_func = OFDM_corr_receive(rx_config.rx_samples, rx_config.Nc,
+                                            rx_config.CP_size);
+
+    findPeaks::PeakConditions conditions;
+    conditions.set_height(0.45, 1.0);      // Minimum height of 2.0
+    conditions.set_distance(rx_config.Nc); // At least 2 samples between peaks
+    std::vector<int> peaks =
+        findPeaks::find_peaks(rx_config.corr_func, conditions);
+
+    std::vector<std::complex<int16_t>> rx_symbols = extract_OFDM_symbols(
+        rx_config.rx_samples, peaks, rx_config.CP_size, rx_config.CP_size);
+
+    // std::cout << rx_symbols.size() << " ";
+
+    rx_config.raw_symbols = batch_fft(rx_symbols, rx_config.Nc);
+
+    // std::cout << rx_config.raw_symbols.size() << " ";
+
+    // std::vector<int16_t> rx_bits(rx_config.raw_symbols.size());
+
+    // for (int i = 0; i < rx_bits.size(); ++i)
+    // {
+    //   rx_bits[i] = std::real(rx_config.raw_symbols[i]) > 0 ? 0 : 1;
+    // }
   }
 }

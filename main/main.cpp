@@ -216,9 +216,9 @@ void SDR_run(sdr_config_t &sdr_config, tx_cfg &tx_config, rx_cfg &rx_config) {
         }
       }
 
-      int N = (sdr_config.buff_size / tx_config.sps) * tx_config.mod_order;
+      // int N = (sdr_config.buff_size / tx_config.sps) * tx_config.mod_order;
 
-      tx_config.bits = std::move(bits_gen(N));
+      // tx_config.bits = std::move(bits_gen(N));
 
       TX_proccesing(tx_config, sdr_config);
 
@@ -226,6 +226,8 @@ void SDR_run(sdr_config_t &sdr_config, tx_cfg &tx_config, rx_cfg &rx_config) {
       int sr = SoapySDRDevice_readStream(sdr, rxStream, rx_buffs,
                                          sdr_config.buff_size, &flags, &timeNs,
                                          timeoutUs);
+
+      printf("%d", sr);
 
       RX_proccesing(rx_config, sdr_config);
 
@@ -239,6 +241,8 @@ void SDR_run(sdr_config_t &sdr_config, tx_cfg &tx_config, rx_cfg &rx_config) {
       int st = SoapySDRDevice_writeStream(
           sdr, txStream, (const void *const *)tx_buffs, sdr_config.buff_size,
           &flags, tx_time, timeoutUs);
+
+      // printf("%d", st);
 
       /*проверка ошибки отправки*/
       if ((size_t)st != sdr_config.buff_size) {
@@ -278,9 +282,9 @@ int main(int argc, char *argv[]) {
   tx_config.IR_type = 0;
   tx_config.tx_samples.resize(sdr_config.buff_size);
   tx_config.OFDM = 1;
-  tx_config.Nc = 16;
-  tx_config.CP_size = 4;
-  tx_config.count_OFDM_symb = 10;
+  tx_config.Nc = 64;
+  tx_config.CP_size = 16;
+  tx_config.count_OFDM_symb = 24;
 
   /*init RX config*/
   rx_cfg rx_config;
@@ -293,9 +297,9 @@ int main(int argc, char *argv[]) {
   rx_config.mod_order = 2;
   rx_config.sps = 10;
   rx_config.rx_samples.resize(sdr_config.buff_size);
-  rx_config.OFDM = 0;
-  rx_config.Nc = 16;
-  rx_config.CP_size = 4;
+  rx_config.OFDM = 1;
+  rx_config.Nc = 64;
+  rx_config.CP_size = 16;
 
   std::thread gui_thread(run_gui, std::ref(tx_config), std::ref(rx_config),
                          std::ref(sdr_config));

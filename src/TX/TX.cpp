@@ -24,6 +24,10 @@ void TX_proccesing(tx_cfg &config, const sdr_config_t &sdr_cfg) {
   transmitter TX;
 
   if (!config.OFDM) {
+    int N = (sdr_cfg.buff_size / config.sps) * config.mod_order;
+
+    config.bits = std::move(bits_gen(N));
+
     int barker_code_size = 4;
 
     /*create rectangle IR*/
@@ -54,8 +58,8 @@ void TX_proccesing(tx_cfg &config, const sdr_config_t &sdr_cfg) {
     config.tx_samples = std::move(upscaling(samples));
   } else {
 
-    const int N = config.Nc * config.count_OFDM_symb *
-                  static_cast<int>(std::sqrt(config.mod_order));
+    int bits_per_symbol = static_cast<int>(std::log2(config.mod_order));
+    const int N = config.Nc * config.count_OFDM_symb * bits_per_symbol;
     config.bits = bits_gen(N);
 
     /*bits -> QAM symbols*/
@@ -63,7 +67,7 @@ void TX_proccesing(tx_cfg &config, const sdr_config_t &sdr_cfg) {
 
     /*QAM symbols -> IFFT -> OFDM signal*/
     std::vector<std::complex<double>> ofdm_signal =
-        batch_ifft(config.symbols, config.count_OFDM_symb);
+        batch_ifft(config.symbols, config.Nc);
     ofdm_signal = add_CP(ofdm_signal, config);
 
     config.tx_samples = upscaling(ofdm_signal);
