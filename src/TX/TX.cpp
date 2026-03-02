@@ -23,53 +23,57 @@ void TX_proccesing(tx_cfg &config, const sdr_config_t &sdr_cfg) {
   /*tx object*/
   transmitter TX;
 
-  if (!config.OFDM) {
-    int N = (sdr_cfg.buff_size / config.sps) * config.mod_order;
+  while (1) {
 
-    config.bits = std::move(bits_gen(N));
+    if (!config.OFDM) {
+      int N = (sdr_cfg.buff_size / config.sps) * config.mod_order;
 
-    int barker_code_size = 4;
+      config.bits = std::move(bits_gen(N));
 
-    /*create rectangle IR*/
-    std::vector<double> IR(config.sps, 1);
+      int barker_code_size = 4;
 
-    /*TX work logic*/
+      /*create rectangle IR*/
+      std::vector<double> IR(config.sps, 1);
 
-    /*generate barker code*/
-    std::vector<int16_t> barker_code =
-        TX.overhead_encoder_.generate_barker_code(barker_code_size);
+      /*TX work logic*/
 
-    /*append sync sequence*/
-    std::vector<int16_t> overhead_bits =
-        TX.overhead_encoder_.add_sync_seq_to_message(config.bits, barker_code);
+      /*generate barker code*/
+      std::vector<int16_t> barker_code =
+          TX.overhead_encoder_.generate_barker_code(barker_code_size);
 
-    /*bits -> QAM symbols*/
-    config.symbols =
-        std::move(TX.modulator_.QAM(config.mod_order, config.bits));
+      /*append sync sequence*/
+      std::vector<int16_t> overhead_bits =
+          TX.overhead_encoder_.add_sync_seq_to_message(config.bits,
+                                                       barker_code);
 
-    /*QAM symbols -> upsampling QAM symbols*/
-    std::vector<std::complex<double>> ups_symbols =
-        TX.filter_.upsampling(config.symbols, config.sps);
+      /*bits -> QAM symbols*/
+      config.symbols =
+          std::move(TX.modulator_.QAM(config.mod_order, config.bits));
 
-    std::vector<std::complex<double>> samples =
-        TX.filter_.convolve(ups_symbols, IR, config.sps);
+      /*QAM symbols -> upsampling QAM symbols*/
+      std::vector<std::complex<double>> ups_symbols =
+          TX.filter_.upsampling(config.symbols, config.sps);
 
-    /*upsampling QAM symbols -> upscale samples (for pluto SDR)*/
-    config.tx_samples = std::move(upscaling(samples));
-  } else {
+      std::vector<std::complex<double>> samples =
+          TX.filter_.convolve(ups_symbols, IR, config.sps);
 
-    int bits_per_symbol = static_cast<int>(std::log2(config.mod_order));
-    const int N = config.Nc * config.count_OFDM_symb * bits_per_symbol;
-    config.bits = bits_gen(N);
+      /*upsampling QAM symbols -> upscale samples (for pluto SDR)*/
+      config.tx_samples = std::move(upscaling(samples));
+    } else {
 
-    /*bits -> QAM symbols*/
-    config.symbols = TX.modulator_.QAM(config.mod_order, config.bits);
+      int bits_per_symbol = static_cast<int>(std::log2(config.mod_order));
+      const int N = config.Nc * config.count_OFDM_symb * bits_per_symbol;
+      config.bits = bits_gen(N);
 
-    /*QAM symbols -> IFFT -> OFDM signal*/
-    std::vector<std::complex<double>> ofdm_signal =
-        batch_ifft(config.symbols, config.Nc);
-    ofdm_signal = add_CP(ofdm_signal, config);
+      /*bits -> QAM symbols*/
+      config.symbols = TX.modulator_.QAM(config.mod_order, config.bits);
 
-    config.tx_samples = upscaling(ofdm_signal);
+      /*QAM symbols -> IFFT -> OFDM signal*/
+      std::vector<std::complex<double>> ofdm_signal =
+          batch_ifft(config.symbols, config.Nc);
+      ofdm_signal = add_CP(ofdm_signal, config);
+
+      config.tx_samples = upscaling(ofdm_signal);
+    }
   }
 }

@@ -38,109 +38,130 @@ void RX_proccesing(rx_cfg &rx_config, sdr_config_t &sdr_config) {
 
   receiver RX;
 
-  if (!rx_config.OFDM) {
+  while (1) {
 
-    std::vector<double> IR(rx_config.sps, 1); // matched filter IR
-    int barker_code_size = 13;
-    /*RX object*/
-    modulator modulator_;
-    overhead_encoder overhead_encoder_;
+    if (!rx_config.OFDM) {
 
-    std::vector<std::complex<double>> samples =
-        int_to_double(rx_config.rx_samples);
+      std::vector<double> IR(rx_config.sps, 1); // matched filter IR
+      int barker_code_size = 13;
+      /*RX object*/
+      modulator modulator_;
+      overhead_encoder overhead_encoder_;
 
-    /*CFO*/
+      std::vector<std::complex<double>> samples =
+          int_to_double(rx_config.rx_samples);
 
-    RX.synchronizer_.coarse_freq_offset(samples, rx_config,
-                                        sdr_config.rx_sample_rate);
+      /*CFO*/
 
-    /*FFT*/
+      RX.synchronizer_.coarse_freq_offset(samples, rx_config,
+                                          sdr_config.rx_sample_rate);
 
-    rx_config.spectrum = fft(rx_config.rx_samples, sdr_config.rx_sample_rate);
+      /*FFT*/
 
-    // /*generate barker code*/
-    // std::vector<int16_t> barker_code =
-    //     overhead_encoder_.generate_barker_code(barker_code_size);
+      rx_config.spectrum = fft(rx_config.rx_samples, sdr_config.rx_sample_rate);
 
-    // /*barker code -> symbols*/
-    // std::vector<std::complex<double>> barker_code_symb =
-    //     modulator_.QAM(rx_config.mod_order, barker_code);
+      // /*generate barker code*/
+      // std::vector<int16_t> barker_code =
+      //     overhead_encoder_.generate_barker_code(barker_code_size);
 
-    /*RX work logic*/
+      // /*barker code -> symbols*/
+      // std::vector<std::complex<double>> barker_code_symb =
+      //     modulator_.QAM(rx_config.mod_order, barker_code);
 
-    /*coarse freq sync*/
-    // std::vector<std::complex<double>> cfo_symbols =
-    //     RX.synchronizer_.coarse_freq_offset(samples2, barker_code_size);
+      /*RX work logic*/
 
-    /*send samples to mathced filter to increase SNR*/
-    rx_config.mf_samples_out = std::move(downscaler(
-        RX.mf_filter_.convolve(rx_config.post_cfo_signal, IR, rx_config.sps)));
+      /*coarse freq sync*/
+      // std::vector<std::complex<double>> cfo_symbols =
+      //     RX.synchronizer_.coarse_freq_offset(samples2, barker_code_size);
 
-    /*symbol sync (gardner scheme). Find offsets for each symbol*/
-    std::vector<int16_t> offsets =
-        RX.synchronizer_.gardner(rx_config.mf_samples_out, rx_config.sps,
-                                 rx_config.gardner_Kp, rx_config.gardner_BnTs);
+      /*send samples to mathced filter to increase SNR*/
+      rx_config.mf_samples_out = std::move(downscaler(RX.mf_filter_.convolve(
+          rx_config.post_cfo_signal, IR, rx_config.sps)));
 
-    /*samples -> symbols*/
-    rx_config.raw_symbols = RX.mf_filter_.downsampling(rx_config.mf_samples_out,
-                                                       offsets, rx_config.sps);
+      /*symbol sync (gardner scheme). Find offsets for each symbol*/
+      std::vector<int16_t> offsets = RX.synchronizer_.gardner(
+          rx_config.mf_samples_out, rx_config.sps, rx_config.gardner_Kp,
+          rx_config.gardner_BnTs);
 
-    rx_config.post_costas = RX.synchronizer_.costas_loop(
-        rx_config.raw_symbols, 1, rx_config.costas_BnTs, rx_config.costas_Kp,
-        rx_config.mod_order);
+      /*samples -> symbols*/
+      rx_config.raw_symbols = RX.mf_filter_.downsampling(
+          rx_config.mf_samples_out, offsets, rx_config.sps);
 
-    // /*get corr_coeffs (simulate correlation receiving)*/
-    // rx_config.corr_func =
-    //     RX.synchronizer_.corr_receiving(rx_config.raw_symbols,
-    //     barker_code_symb);
+      rx_config.post_costas = RX.synchronizer_.costas_loop(
+          rx_config.raw_symbols, 1, rx_config.costas_BnTs, rx_config.costas_Kp,
+          rx_config.mod_order);
 
-    // /*find peak of correlation (start packet)*/
-    // int start_sync = RX.synchronizer_.find_sync_index(corr_coeffs);
+      // /*get corr_coeffs (simulate correlation receiving)*/
+      // rx_config.corr_func =
+      //     RX.synchronizer_.corr_receiving(rx_config.raw_symbols,
+      //     barker_code_symb);
 
-    // /*slice symbols*/
-    // std::vector<std::complex<double>> slice_symbols(symbols.begin() + 0,
-    //                                                 symbols.end());
+      // /*find peak of correlation (start packet)*/
+      // int start_sync = RX.synchronizer_.find_sync_index(corr_coeffs);
 
-    // /*fine freq sync*/
-    // std::vector<std::complex<double>> post_costas =
-    //     RX.synchronizer_.costas_loop(slice_symbols);
+      // /*slice symbols*/
+      // std::vector<std::complex<double>> slice_symbols(symbols.begin() + 0,
+      //                                                 symbols.end());
 
-    // /*cut barker*/
-    // std::vector<std::complex<double>> wo_barker(
-    //     post_costas.begin() + barker_code_size, post_costas.end());
+      // /*fine freq sync*/
+      // std::vector<std::complex<double>> post_costas =
+      //     RX.synchronizer_.costas_loop(slice_symbols);
 
-    /*symbols -> true symbols (quantization)*/
-    // std::vector<std::complex<double>> true_symbols =
-    //     RX.demodulator_.QAM_quantizater(rx_config.raw_symbols,
-    //     rx_config.mod_order);
+      // /*cut barker*/
+      // std::vector<std::complex<double>> wo_barker(
+      //     post_costas.begin() + barker_code_size, post_costas.end());
 
-    // /*true symbols -> bits*/
-    // std::vector<int16_t> bits =
-    //     RX.demodulator_.QAM_demodulator(true_symbols, rx_config.mod_order);
-  } else {
-    rx_config.corr_func = OFDM_corr_receive(rx_config.rx_samples, rx_config.Nc,
-                                            rx_config.CP_size);
+      /*symbols -> true symbols (quantization)*/
+      // std::vector<std::complex<double>> true_symbols =
+      //     RX.demodulator_.QAM_quantizater(rx_config.raw_symbols,
+      //     rx_config.mod_order);
 
-    findPeaks::PeakConditions conditions;
-    conditions.set_height(0.45, 1.0);      // Minimum height of 2.0
-    conditions.set_distance(rx_config.Nc); // At least 2 samples between peaks
-    std::vector<int> peaks =
-        findPeaks::find_peaks(rx_config.corr_func, conditions);
+      // /*true symbols -> bits*/
+      // std::vector<int16_t> bits =
+      //     RX.demodulator_.QAM_demodulator(true_symbols, rx_config.mod_order);
+    } else {
+      std::vector<std::complex<double>> samples_d =
+          int_to_double(rx_config.rx_samples);
 
-    std::vector<std::complex<int16_t>> rx_symbols = extract_OFDM_symbols(
-        rx_config.rx_samples, peaks, rx_config.CP_size, rx_config.CP_size);
+      std::vector<double> cfo;
 
-    // std::cout << rx_symbols.size() << " ";
+      rx_config.corr_func =
+          OFDM_corr_receiving(samples_d, cfo, rx_config.Nc, rx_config.CP_size);
 
-    rx_config.raw_symbols = batch_fft(rx_symbols, rx_config.Nc);
+      // for (int i = 0; i < cfo.size(); ++i)
+      // {
+      //   std::cout << cfo[i] << " ";
+      // }
 
-    // std::cout << rx_config.raw_symbols.size() << " ";
+      rx_config.spectrum = fft(samples_d, sdr_config.rx_sample_rate);
 
-    // std::vector<int16_t> rx_bits(rx_config.raw_symbols.size());
+      // findPeaks::PeakConditions conditions;
+      // conditions.set_height(0.9, 1.0);       // Minimum height of 2.0
+      // conditions.set_distance(rx_config.Nc); // At least 2 samples between
+      // peaks
 
-    // for (int i = 0; i < rx_bits.size(); ++i)
-    // {
-    //   rx_bits[i] = std::real(rx_config.raw_symbols[i]) > 0 ? 0 : 1;
-    // }
+      // std::vector<int> peaks = findPeaks::find_peaks(corr_func, conditions);
+
+      // CFO_correction(samples_d, peaks, cfo, rx_config.CP_size, rx_config.Nc);
+
+      // rx_config.corr_func = OFDM_corr_receiving(samples_d, cfo, rx_config.Nc,
+      // rx_config.CP_size);
+
+      // std::vector<std::complex<double>> rx_symbols = extract_OFDM_symbols(
+      //     samples_d, peaks, rx_config.CP_size, rx_config.CP_size);
+
+      // // std::cout << rx_symbols.size() << " ";
+
+      // rx_config.raw_symbols = batch_fft(rx_symbols, rx_config.Nc);
+
+      // std::cout << rx_config.raw_symbols.size() << " ";
+
+      // std::vector<int16_t> rx_bits(rx_config.raw_symbols.size());
+
+      // for (int i = 0; i < rx_bits.size(); ++i)
+      // {
+      //   rx_bits[i] = std::real(rx_config.raw_symbols[i]) > 0 ? 0 : 1;
+      // }
+    }
   }
 }

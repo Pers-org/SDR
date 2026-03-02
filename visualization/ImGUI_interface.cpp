@@ -65,7 +65,7 @@ ImPlotPoint get_amp_spec(int idx, void *data) {
   const auto &freqs = fft->second;
 
   double x = freqs[idx];
-  double y = std::abs(samples[idx]);
+  double y = 10 * log10(std::abs(samples[idx]));
 
   return ImPlotPoint(x, y);
 }
@@ -268,15 +268,14 @@ void run_gui(tx_cfg &tx_config, rx_cfg &rx_config, sdr_config_t &sdr_config) {
             //   ImPlot::EndPlot();
             // }
 
-            // if (ImPlot::BeginPlot("Amplitude spectrum",
-            //                       ImVec2(-1, plot_height)))
-            // {
-            //   ImPlot::SetupAxes("frequency", "Amplitude");
-            //   ImPlot::PlotLineG("I component", get_amp_spec,
-            //                     &rx_config.spectrum.first,
-            //                     rx_config.spectrum.first.size());
-            //   ImPlot::EndPlot();
-            // }
+            if (ImPlot::BeginPlot("Amplitude spectrum",
+                                  ImVec2(-1, plot_height))) {
+              ImPlot::SetupAxes("frequency", "Amplitude");
+              ImPlot::PlotLineG("I component", get_amp_spec,
+                                &rx_config.spectrum.first,
+                                rx_config.spectrum.first.size());
+              ImPlot::EndPlot();
+            }
 
             // if (ImPlot::BeginPlot("Phase spectrum", ImVec2(-1, plot_height)))
             // {

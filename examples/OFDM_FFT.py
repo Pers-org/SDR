@@ -40,18 +40,18 @@ def simulate(mod_type,Nsc,Nsymb,CP_size):
     # OFDM_signal = awgn(OFDM_signal, snr_dB=24)
 
     #corr receiving
-    R = ofdm.correlation_receiving(OFDM_signal, CP_size, Nsc)
+    R = ofdm.ofdm_cp_metric(OFDM_signal, Nsc, CP_size)
 
-
-    peaks, _ = find_peaks(R, height=0.7, threshold=0.99, distance=Nsc)
+    print(R)
+    peaks, _ = find_peaks(R, height=0.9, distance=Nsc)
 
     ofdm_symbols = []
 
-    # plt.plot(R)
-    # plt.xlabel("sample")
-    # plt.ylabel("R[n]")
-    # plt.title("Correltion function")
-    # plt.show()
+    plt.plot(R)
+    plt.xlabel("sample")
+    plt.ylabel("R[n]")
+    plt.title("Correltion function")
+    plt.show()
 
 
     #get ofdm symbols
@@ -126,13 +126,13 @@ def simulate(mod_type,Nsc,Nsymb,CP_size):
     return BER
 
 mod_type = "BPSK"
-Nsc = 256
-Nsymb = 200
+Nsc = 64
+Nsymb = 15
 CP_size = Nsc//8+1
 OFDM_symb_size = Nsc
 BER = 0
 
-for i in range(10):
+for i in range(1):
     BER += simulate(mod_type, Nsc, Nsymb, CP_size)
 
 print(BER)

@@ -105,4 +105,36 @@ def my_find_peaks(corr_function, alpha, period):
             peaks.append(i)
 
     return peaks[1:]
-        
+
+
+def ofdm_cp_metric(rx, N, Lcp):
+    corr_func = []
+
+    L = len(rx) - N - Lcp
+    corr = 0
+    R = []
+    A = [0]
+    B = [0]
+
+
+    #init 
+    for k in range(Lcp):
+        corr += rx[k] * np.conj(rx[k+N])
+        A[0] += np.abs(rx[k]) ** 2
+        B[0] += np.abs(rx[k+N]) ** 2
+
+    R.append(corr)
+
+    corr_func.append(np.abs(R[-1] / np.sqrt(A[-1] * B[-1])))
+
+    #update
+    for k in range(1, L):
+        R.append(R[-1] - rx[k-1] * np.conj(rx[k+N-1]) + rx[k+Lcp-1] * np.conj(rx[k+N+Lcp-1]))
+
+        A.append(A[-1] - np.abs(rx[k-1])**2 + np.abs(rx[k+Lcp-1])**2)
+
+        B.append(B[-1]- np.abs(rx[k+N-1])**2+ np.abs(rx[k+N+Lcp-1])**2)
+
+        corr_func.append(np.abs(R[-1] / np.sqrt(A[-1] * B[-1])))
+
+    return corr_func

@@ -13,7 +13,7 @@ upscaling(const std::vector<std::complex<double>> &psf_symbols) {
     int16_t I = static_cast<int16_t>(psf_symbols[i].real() * 2047) << 4;
     int16_t Q = static_cast<int16_t>(psf_symbols[i].imag() * 2047) << 4;
 
-    samples[i] = {I * 1.2, Q * 1.2};
+    samples[i] = {I * 2.5, Q * 2.5};
   }
 
   return samples;

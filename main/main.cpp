@@ -36,236 +36,278 @@
 #include "imgui.h"
 #include "implot.h"
 
-void SDR_run(sdr_config_t &sdr_config, tx_cfg &tx_config, rx_cfg &rx_config) {
-  /*setup pluto*/
-  struct SoapySDRDevice *sdr = setup_pluto_sdr(&sdr_config);
-  struct SoapySDRStream *rxStream = setup_stream(sdr, &sdr_config, 1);
-  struct SoapySDRStream *txStream = setup_stream(sdr, &sdr_config, 0);
+// void SDR_run(sdr_config_t &sdr_config, tx_cfg &tx_config, rx_cfg &rx_config)
+// {
+//   /*setup pluto*/
+//   struct SoapySDRDevice *sdr = setup_pluto_sdr(&sdr_config);
+//   struct SoapySDRStream *rxStream = setup_stream(sdr, &sdr_config, 1);
+//   struct SoapySDRStream *txStream = setup_stream(sdr, &sdr_config, 0);
 
-  /*create buffers*/
-  int16_t tx_buffer[2 * sdr_config.buff_size];
+//   /*create buffers*/
+//   int16_t tx_buffer[2 * sdr_config.buff_size];
 
-  float prev_tx_samplerate = sdr_config.tx_sample_rate;
-  float prev_rx_samplerate = sdr_config.rx_sample_rate;
+//   float prev_tx_samplerate = sdr_config.tx_sample_rate;
+//   float prev_rx_samplerate = sdr_config.rx_sample_rate;
 
-  float prev_rx_freq = sdr_config.rx_sample_rate;
-  float prev_tx_freq = sdr_config.tx_sample_rate;
+//   float prev_rx_freq = sdr_config.rx_sample_rate;
+//   float prev_tx_freq = sdr_config.tx_sample_rate;
 
-  float prev_rx_gain = sdr_config.rx_gain;
-  float prev_tx_gain = sdr_config.tx_gain;
+//   float prev_rx_gain = sdr_config.rx_gain;
+//   float prev_tx_gain = sdr_config.tx_gain;
 
-  /*if we want only rx*/
-  if (sdr_config.mode == 0) {
-    const long timeoutUs = 400000; // arbitrarily chosen (взяли из srsRAN)
+//   /*if we want only rx*/
+//   if (sdr_config.mode == 0)
+//   {
+//     const long timeoutUs = 400000; // arbitrarily chosen (взяли из srsRAN)
 
-    long long last_time = 0;
+//     long long last_time = 0;
 
-    void *rx_buffs[] = {rx_config.rx_samples.data()};
-    int flags;        // flags set by receive operation
-    long long timeNs; // timestamp for receive buffer
+//     void *rx_buffs[] = {rx_config.rx_samples.data()};
+//     int flags;        // flags set by receive operation
+//     long long timeNs; // timestamp for receive buffer
 
-    while (rx_config.run) {
-      if (sdr_config.rx_sample_rate != prev_rx_samplerate) {
-        prev_rx_samplerate = sdr_config.rx_sample_rate;
+//     while (rx_config.run)
+//     {
+//       if (sdr_config.rx_sample_rate != prev_rx_samplerate)
+//       {
+//         prev_rx_samplerate = sdr_config.rx_sample_rate;
 
-        if (SoapySDRDevice_setSampleRate(sdr, SOAPY_SDR_RX, 0,
-                                         sdr_config.rx_sample_rate) != 0) {
-          spdlog::error("setSampleRate rx fail: %s\n",
-                        SoapySDRDevice_lastError());
-        }
-      }
+//         if (SoapySDRDevice_setSampleRate(sdr, SOAPY_SDR_RX, 0,
+//                                          sdr_config.rx_sample_rate) != 0)
+//         {
+//           spdlog::error("setSampleRate rx fail: %s\n",
+//                         SoapySDRDevice_lastError());
+//         }
+//       }
 
-      if (sdr_config.tx_sample_rate != prev_tx_samplerate) {
-        prev_tx_samplerate = sdr_config.tx_sample_rate;
+//       if (sdr_config.tx_sample_rate != prev_tx_samplerate)
+//       {
+//         prev_tx_samplerate = sdr_config.tx_sample_rate;
 
-        if (SoapySDRDevice_setSampleRate(sdr, SOAPY_SDR_TX, 0,
-                                         sdr_config.tx_sample_rate) != 0) {
-          spdlog::error("setSampleRate tx fail: %s\n",
-                        SoapySDRDevice_lastError());
-        }
-      }
+//         if (SoapySDRDevice_setSampleRate(sdr, SOAPY_SDR_TX, 0,
+//                                          sdr_config.tx_sample_rate) != 0)
+//         {
+//           spdlog::error("setSampleRate tx fail: %s\n",
+//                         SoapySDRDevice_lastError());
+//         }
+//       }
 
-      if (sdr_config.rx_carrier_freq != prev_rx_freq) {
+//       if (sdr_config.rx_carrier_freq != prev_rx_freq)
+//       {
 
-        prev_rx_freq = sdr_config.rx_carrier_freq;
+//         prev_rx_freq = sdr_config.rx_carrier_freq;
 
-        if (SoapySDRDevice_setFrequency(
-                sdr, SOAPY_SDR_RX, 0, sdr_config.rx_carrier_freq, NULL) != 0) {
-          spdlog::error("setFrequency rx fail: %s\n",
-                        SoapySDRDevice_lastError());
-        }
-      }
+//         if (SoapySDRDevice_setFrequency(
+//                 sdr, SOAPY_SDR_RX, 0, sdr_config.rx_carrier_freq, NULL) != 0)
+//         {
+//           spdlog::error("setFrequency rx fail: %s\n",
+//                         SoapySDRDevice_lastError());
+//         }
+//       }
 
-      if (sdr_config.tx_carrier_freq != prev_tx_freq) {
-        prev_tx_freq = sdr_config.tx_carrier_freq;
-        if (SoapySDRDevice_setFrequency(
-                sdr, SOAPY_SDR_TX, 0, sdr_config.tx_carrier_freq, NULL) != 0) {
-          spdlog::error("setFrequency tx fail: %s\n",
-                        SoapySDRDevice_lastError());
-        }
-      }
+//       if (sdr_config.tx_carrier_freq != prev_tx_freq)
+//       {
+//         prev_tx_freq = sdr_config.tx_carrier_freq;
+//         if (SoapySDRDevice_setFrequency(
+//                 sdr, SOAPY_SDR_TX, 0, sdr_config.tx_carrier_freq, NULL) != 0)
+//         {
+//           spdlog::error("setFrequency tx fail: %s\n",
+//                         SoapySDRDevice_lastError());
+//         }
+//       }
 
-      if (sdr_config.rx_gain != prev_rx_gain) {
-        prev_rx_gain = sdr_config.rx_gain;
+//       if (sdr_config.rx_gain != prev_rx_gain)
+//       {
+//         prev_rx_gain = sdr_config.rx_gain;
 
-        if (SoapySDRDevice_setGain(sdr, SOAPY_SDR_RX, *sdr_config.channels,
-                                   sdr_config.rx_gain) != 0) {
-          spdlog::error("setGain rx fail: %s\n", SoapySDRDevice_lastError());
-        }
-      }
+//         if (SoapySDRDevice_setGain(sdr, SOAPY_SDR_RX, *sdr_config.channels,
+//                                    sdr_config.rx_gain) != 0)
+//         {
+//           spdlog::error("setGain rx fail: %s\n", SoapySDRDevice_lastError());
+//         }
+//       }
 
-      if (sdr_config.tx_gain != prev_tx_gain) {
-        prev_tx_gain = sdr_config.tx_gain;
+//       if (sdr_config.tx_gain != prev_tx_gain)
+//       {
+//         prev_tx_gain = sdr_config.tx_gain;
 
-        if (SoapySDRDevice_setGain(sdr, SOAPY_SDR_RX, *sdr_config.channels,
-                                   sdr_config.tx_gain) != 0) {
-          spdlog::error("setGain rx fail: %s\n", SoapySDRDevice_lastError());
-        }
-      }
+//         if (SoapySDRDevice_setGain(sdr, SOAPY_SDR_RX, *sdr_config.channels,
+//                                    sdr_config.tx_gain) != 0)
+//         {
+//           spdlog::error("setGain rx fail: %s\n", SoapySDRDevice_lastError());
+//         }
+//       }
 
-      // считали буффер RX, записали его в rx_buffer
-      SoapySDRDevice_readStream(sdr, rxStream, rx_buffs, sdr_config.buff_size,
-                                &flags, &timeNs, timeoutUs);
+//       // считали буффер RX, записали его в rx_buffer
+//       SoapySDRDevice_readStream(sdr, rxStream, rx_buffs,
+//       sdr_config.buff_size,
+//                                 &flags, &timeNs, timeoutUs);
 
-      RX_proccesing(rx_config, sdr_config);
-    }
-  }
+//       RX_proccesing(rx_config, sdr_config);
+//     }
+//   }
 
-  else if (sdr_config.mode == 1) {
+//   else if (sdr_config.mode == 1)
+//   {
 
-    /*Мы делаем прием во время передачи, потому что pluto SDR хочет получать
-    время отправки, а чтобы его высчитать (у нас на 4 мс в будущее), нужно
-    выполнить прием данных*/
+//     /*Мы делаем прием во время передачи, потому что pluto SDR хочет получать
+//     время отправки, а чтобы его высчитать (у нас на 4 мс в будущее), нужно
+//     выполнить прием данных*/
 
-    /*кол-во бит в пакете*/
+//     /*кол-во бит в пакете*/
 
-    const long timeoutUs = 400000; // arbitrarily chosen (взяли из srsRAN)
+//     const long timeoutUs = 400000; // arbitrarily chosen (взяли из srsRAN)
 
-    /*get current time*/
-    time_t start = time(NULL);
-    long long last_time = 0;
+//     /*get current time*/
+//     time_t start = time(NULL);
+//     long long last_time = 0;
 
-    void *rx_buffs[] = {rx_config.rx_samples.data()};
-    int flags;        // flags set by receive operation
-    long long timeNs; // timestamp for receive buffer
+//     void *rx_buffs[] = {rx_config.rx_samples.data()};
+//     int flags;        // flags set by receive operation
+//     long long timeNs; // timestamp for receive buffer
 
-    /*формируем отправляемый буфер путем смещения в нашем массиве семплов*/
+//     /*формируем отправляемый буфер путем смещения в нашем массиве семплов*/
 
-    /*для отладки пишем отправляемые семплы в файл*/
-    // fwrite(samples + offset, 2 * buff_size * sizeof(int16_t), 1, txdata);
+//     /*для отладки пишем отправляемые семплы в файл*/
+//     // fwrite(samples + offset, 2 * buff_size * sizeof(int16_t), 1, txdata);
 
-    flags = SOAPY_SDR_HAS_TIME;
+//     flags = SOAPY_SDR_HAS_TIME;
 
-    /*функция для отправки*/
-    while (tx_config.run) {
-      if (sdr_config.rx_sample_rate != prev_rx_samplerate) {
-        prev_rx_samplerate = sdr_config.rx_sample_rate;
+//     /*функция для отправки*/
+//     while (tx_config.run)
+//     {
+//       if (sdr_config.rx_sample_rate != prev_rx_samplerate)
+//       {
+//         prev_rx_samplerate = sdr_config.rx_sample_rate;
 
-        if (SoapySDRDevice_setSampleRate(sdr, SOAPY_SDR_RX, 0,
-                                         sdr_config.rx_sample_rate) != 0) {
-          spdlog::error("setSampleRate rx fail: %s\n",
-                        SoapySDRDevice_lastError());
-        }
-      }
+//         if (SoapySDRDevice_setSampleRate(sdr, SOAPY_SDR_RX, 0,
+//                                          sdr_config.rx_sample_rate) != 0)
+//         {
+//           spdlog::error("setSampleRate rx fail: %s\n",
+//                         SoapySDRDevice_lastError());
+//         }
+//       }
 
-      if (sdr_config.tx_sample_rate != prev_tx_samplerate) {
-        prev_tx_samplerate = sdr_config.tx_sample_rate;
+//       if (sdr_config.tx_sample_rate != prev_tx_samplerate)
+//       {
+//         prev_tx_samplerate = sdr_config.tx_sample_rate;
 
-        if (SoapySDRDevice_setSampleRate(sdr, SOAPY_SDR_TX, 0,
-                                         sdr_config.tx_sample_rate) != 0) {
-          spdlog::error("setSampleRate tx fail: %s\n",
-                        SoapySDRDevice_lastError());
-        }
-      }
+//         if (SoapySDRDevice_setSampleRate(sdr, SOAPY_SDR_TX, 0,
+//                                          sdr_config.tx_sample_rate) != 0)
+//         {
+//           spdlog::error("setSampleRate tx fail: %s\n",
+//                         SoapySDRDevice_lastError());
+//         }
+//       }
 
-      if (sdr_config.rx_carrier_freq != prev_rx_freq) {
+//       if (sdr_config.rx_carrier_freq != prev_rx_freq)
+//       {
 
-        prev_rx_freq = sdr_config.rx_carrier_freq;
+//         prev_rx_freq = sdr_config.rx_carrier_freq;
 
-        if (SoapySDRDevice_setFrequency(
-                sdr, SOAPY_SDR_RX, 0, sdr_config.rx_carrier_freq, NULL) != 0) {
-          spdlog::error("setFrequency rx fail: %s\n",
-                        SoapySDRDevice_lastError());
-        }
-      }
+//         if (SoapySDRDevice_setFrequency(
+//                 sdr, SOAPY_SDR_RX, 0, sdr_config.rx_carrier_freq, NULL) != 0)
+//         {
+//           spdlog::error("setFrequency rx fail: %s\n",
+//                         SoapySDRDevice_lastError());
+//         }
+//       }
 
-      if (sdr_config.tx_carrier_freq != prev_tx_freq) {
-        prev_tx_freq = sdr_config.tx_carrier_freq;
-        if (SoapySDRDevice_setFrequency(
-                sdr, SOAPY_SDR_TX, 0, sdr_config.tx_carrier_freq, NULL) != 0) {
-          spdlog::error("setFrequency tx fail: %s\n",
-                        SoapySDRDevice_lastError());
-        }
-      }
+//       if (sdr_config.tx_carrier_freq != prev_tx_freq)
+//       {
+//         prev_tx_freq = sdr_config.tx_carrier_freq;
+//         if (SoapySDRDevice_setFrequency(
+//                 sdr, SOAPY_SDR_TX, 0, sdr_config.tx_carrier_freq, NULL) != 0)
+//         {
+//           spdlog::error("setFrequency tx fail: %s\n",
+//                         SoapySDRDevice_lastError());
+//         }
+//       }
 
-      if (sdr_config.rx_gain != prev_rx_gain) {
-        prev_rx_gain = sdr_config.rx_gain;
+//       if (sdr_config.rx_gain != prev_rx_gain)
+//       {
+//         prev_rx_gain = sdr_config.rx_gain;
 
-        if (SoapySDRDevice_setGain(sdr, SOAPY_SDR_RX, *sdr_config.channels,
-                                   sdr_config.rx_gain) != 0) {
-          spdlog::error("setGain rx fail: %s\n", SoapySDRDevice_lastError());
-        }
-      }
+//         if (SoapySDRDevice_setGain(sdr, SOAPY_SDR_RX, *sdr_config.channels,
+//                                    sdr_config.rx_gain) != 0)
+//         {
+//           spdlog::error("setGain rx fail: %s\n", SoapySDRDevice_lastError());
+//         }
+//       }
 
-      if (sdr_config.tx_gain != prev_tx_gain) {
-        prev_tx_gain = sdr_config.tx_gain;
+//       if (sdr_config.tx_gain != prev_tx_gain)
+//       {
+//         prev_tx_gain = sdr_config.tx_gain;
 
-        if (SoapySDRDevice_setGain(sdr, SOAPY_SDR_RX, *sdr_config.channels,
-                                   sdr_config.tx_gain) != 0) {
-          spdlog::error("setGain rx fail: %s\n", SoapySDRDevice_lastError());
-        }
-      }
+//         if (SoapySDRDevice_setGain(sdr, SOAPY_SDR_RX, *sdr_config.channels,
+//                                    sdr_config.tx_gain) != 0)
+//         {
+//           spdlog::error("setGain rx fail: %s\n", SoapySDRDevice_lastError());
+//         }
+//       }
 
-      // int N = (sdr_config.buff_size / tx_config.sps) * tx_config.mod_order;
+//       TX_proccesing(tx_config, sdr_config);
 
-      // tx_config.bits = std::move(bits_gen(N));
+//       // считали буффер RX, записали его в rx_buffer
+//       int sr = SoapySDRDevice_readStream(sdr, rxStream, rx_buffs,
+//                                          sdr_config.buff_size, &flags,
+//                                          &timeNs, timeoutUs);
 
-      TX_proccesing(tx_config, sdr_config);
+//       // printf("%d", sr);
 
-      // считали буффер RX, записали его в rx_buffer
-      int sr = SoapySDRDevice_readStream(sdr, rxStream, rx_buffs,
-                                         sdr_config.buff_size, &flags, &timeNs,
-                                         timeoutUs);
+//       RX_proccesing(rx_config, sdr_config);
 
-      printf("%d", sr);
+//       last_time = timeNs;
 
-      RX_proccesing(rx_config, sdr_config);
+//       // Переменная для времени отправки сэмплов относительно текущего приема
+//       long long tx_time = timeNs + (4 * 1000 * 1000); // на 4 [мс] в будущее
 
-      last_time = timeNs;
+//       void *tx_buffs[] = {tx_config.tx_samples.data()};
 
-      // Переменная для времени отправки сэмплов относительно текущего приема
-      long long tx_time = timeNs + (4 * 1000 * 1000); // на 4 [мс] в будущее
+//       int st = SoapySDRDevice_writeStream(
+//           sdr, txStream, (const void *const *)tx_buffs, sdr_config.buff_size,
+//           &flags, tx_time, timeoutUs);
 
-      void *tx_buffs[] = {tx_config.tx_samples.data()};
+//       // printf("%d",OFDM st);
 
-      int st = SoapySDRDevice_writeStream(
-          sdr, txStream, (const void *const *)tx_buffs, sdr_config.buff_size,
-          &flags, tx_time, timeoutUs);
+//       /*проверка ошибки отправки*/
+//       if ((size_t)st != sdr_config.buff_size)
+//       {
+//         printf("TX Failed: %in", st);
+//       }
+//     }
+//   }
+//   else
+//   {
+//     printf("Invalid mode. Enter mode=0 or mode=1");
+//   }
 
-      // printf("%d", st);
-
-      /*проверка ошибки отправки*/
-      if ((size_t)st != sdr_config.buff_size) {
-        printf("TX Failed: %in", st);
-      }
-    }
-  } else {
-    printf("Invalid mode. Enter mode=0 or mode=1");
-  }
-
-  close_pluto_sdr(sdr, rxStream, txStream);
-}
+//   close_pluto_sdr(sdr, rxStream, txStream);
+// }
 
 int main(int argc, char *argv[]) {
 
   int mode = std::atoi(argv[2]);
 
+  double rx_carrier_freq = 800e6;
+  double tx_carrier_freq = 800e6;
+
+  if (mode == 0) {
+    rx_carrier_freq = 800e6;
+    tx_carrier_freq = 1000e6;
+  }
+
+  if (mode == 1) {
+    rx_carrier_freq = 700e6;
+    tx_carrier_freq = 800e6;
+  }
+
   /*init SDR config*/
   sdr_config_t sdr_config;
   sdr_config.usb_uri = argv[1];
   sdr_config.buff_size = 1920;
-  sdr_config.rx_carrier_freq = 800e6;
-  sdr_config.tx_carrier_freq = 800e6;
+  sdr_config.rx_carrier_freq = rx_carrier_freq;
+  sdr_config.tx_carrier_freq = tx_carrier_freq;
   sdr_config.rx_sample_rate = 1e6;
   sdr_config.tx_sample_rate = 1e6;
   sdr_config.rx_gain = 20;
@@ -304,10 +346,138 @@ int main(int argc, char *argv[]) {
   std::thread gui_thread(run_gui, std::ref(tx_config), std::ref(rx_config),
                          std::ref(sdr_config));
 
-  std::thread sdr_thread(SDR_run, std::ref(sdr_config), std::ref(tx_config),
-                         std::ref(rx_config));
+  std::thread rx_thread;
+  std::thread tx_thread;
+
+  /*setup pluto*/
+  struct SoapySDRDevice *sdr = setup_pluto_sdr(&sdr_config);
+  struct SoapySDRStream *rxStream = setup_stream(sdr, &sdr_config, 1);
+  struct SoapySDRStream *txStream = setup_stream(sdr, &sdr_config, 0);
+
+  if (mode == 0) {
+    rx_thread =
+        std::thread(RX_proccesing, std::ref(rx_config), std::ref(sdr_config));
+  }
+
+  if (mode == 1) {
+    tx_thread =
+        std::thread(TX_proccesing, std::ref(tx_config), std::ref(sdr_config));
+  }
+
+  if (mode == 2) {
+    rx_thread =
+        std::thread(RX_proccesing, std::ref(rx_config), std::ref(sdr_config));
+
+    tx_thread =
+        std::thread(TX_proccesing, std::ref(tx_config), std::ref(sdr_config));
+  }
+
+  /*create buffers*/
+  int16_t tx_buffer[2 * sdr_config.buff_size];
+
+  float prev_tx_samplerate = sdr_config.tx_sample_rate;
+  float prev_rx_samplerate = sdr_config.rx_sample_rate;
+
+  float prev_rx_freq = sdr_config.rx_sample_rate;
+  float prev_tx_freq = sdr_config.tx_sample_rate;
+
+  float prev_rx_gain = sdr_config.rx_gain;
+  float prev_tx_gain = sdr_config.tx_gain;
+
+  const long timeoutUs = 400000; // arbitrarily chosen (взяли из srsRAN)
+
+  long long last_time = 0;
+
+  void *rx_buffs[] = {rx_config.rx_samples.data()};
+  int flags;        // flags set by receive operation
+  long long timeNs; // timestamp for receive buffer
+
+  while (1) {
+    if (sdr_config.rx_sample_rate != prev_rx_samplerate) {
+      prev_rx_samplerate = sdr_config.rx_sample_rate;
+
+      if (SoapySDRDevice_setSampleRate(sdr, SOAPY_SDR_RX, 0,
+                                       sdr_config.rx_sample_rate) != 0) {
+        spdlog::error("setSampleRate rx fail: %s\n",
+                      SoapySDRDevice_lastError());
+      }
+    }
+
+    if (sdr_config.tx_sample_rate != prev_tx_samplerate) {
+      prev_tx_samplerate = sdr_config.tx_sample_rate;
+
+      if (SoapySDRDevice_setSampleRate(sdr, SOAPY_SDR_TX, 0,
+                                       sdr_config.tx_sample_rate) != 0) {
+        spdlog::error("setSampleRate tx fail: %s\n",
+                      SoapySDRDevice_lastError());
+      }
+    }
+
+    if (sdr_config.rx_carrier_freq != prev_rx_freq) {
+
+      prev_rx_freq = sdr_config.rx_carrier_freq;
+
+      if (SoapySDRDevice_setFrequency(sdr, SOAPY_SDR_RX, 0,
+                                      sdr_config.rx_carrier_freq, NULL) != 0) {
+        spdlog::error("setFrequency rx fail: %s\n", SoapySDRDevice_lastError());
+      }
+    }
+
+    if (sdr_config.tx_carrier_freq != prev_tx_freq) {
+      prev_tx_freq = sdr_config.tx_carrier_freq;
+      if (SoapySDRDevice_setFrequency(sdr, SOAPY_SDR_TX, 0,
+                                      sdr_config.tx_carrier_freq, NULL) != 0) {
+        spdlog::error("setFrequency tx fail: %s\n", SoapySDRDevice_lastError());
+      }
+    }
+
+    if (sdr_config.rx_gain != prev_rx_gain) {
+      prev_rx_gain = sdr_config.rx_gain;
+
+      if (SoapySDRDevice_setGain(sdr, SOAPY_SDR_RX, *sdr_config.channels,
+                                 sdr_config.rx_gain) != 0) {
+        spdlog::error("setGain rx fail: %s\n", SoapySDRDevice_lastError());
+      }
+    }
+
+    if (sdr_config.tx_gain != prev_tx_gain) {
+      prev_tx_gain = sdr_config.tx_gain;
+
+      if (SoapySDRDevice_setGain(sdr, SOAPY_SDR_RX, *sdr_config.channels,
+                                 sdr_config.tx_gain) != 0) {
+        spdlog::error("setGain rx fail: %s\n", SoapySDRDevice_lastError());
+      }
+    }
+
+    // считали буффер RX, записали его в rx_buffer
+    SoapySDRDevice_readStream(sdr, rxStream, rx_buffs, sdr_config.buff_size,
+                              &flags, &timeNs, timeoutUs);
+
+    // считали буффер RX, записали его в rx_buffer
+    int sr =
+        SoapySDRDevice_readStream(sdr, rxStream, rx_buffs, sdr_config.buff_size,
+                                  &flags, &timeNs, timeoutUs);
+
+    last_time = timeNs;
+
+    // Переменная для времени отправки сэмплов относительно текущего приема
+    long long tx_time = timeNs + (4 * 1000 * 1000); // на 4 [мс] в будущее
+
+    void *tx_buffs[] = {tx_config.tx_samples.data()};
+
+    int st = SoapySDRDevice_writeStream(
+        sdr, txStream, (const void *const *)tx_buffs, sdr_config.buff_size,
+        &flags, tx_time, timeoutUs);
+  }
+  if (rx_thread.joinable())
+    rx_thread.join();
+
+  if (tx_thread.joinable())
+    tx_thread.join();
+
   gui_thread.join();
-  sdr_thread.join();
+
+  close_pluto_sdr(sdr, rxStream, txStream);
 
   return 0;
 }

@@ -60,7 +60,7 @@ batch_ifft(const std::vector<std::complex<double>> &data, int batch_size) {
 
   for (int i = 0; i < N; ++i) {
     result[i] = {out[i][0], out[i][1]};
-    // result[i] /= batch_size;
+    result[i] /= batch_size;
   }
 
   fftw_destroy_plan(plan);
@@ -104,67 +104,105 @@ std::vector<std::complex<double>> BPSK(const std::vector<int16_t> &bits) {
   return symbols;
 }
 
-std::complex<double>
-corr(const std::vector<std::complex<int16_t>> &symbols,
-     const std::vector<std::complex<int16_t>> &sync_seq_symb) {
-  if (symbols.size() != sync_seq_symb.size()) {
-    spdlog::error("Vectors must be the same size");
-    return {0.0, 0.0};
-  }
+// std::complex<double> corr(const std::vector<std::complex<int16_t>> &symbols,
+//                           const std::vector<std::complex<int16_t>>
+//                           &sync_seq_symb)
+// {
+//   if (symbols.size() != sync_seq_symb.size())
+//     return {0.0, 0.0};
 
-  std::complex<double> sum{0.0, 0.0};
-  std::complex<double> x;
-  std::complex<double> y;
+//   std::complex<double> sum{0.0, 0.0};
 
-  for (int i = 0; i < symbols.size(); ++i) {
-    x = std::complex<double>(std::real(symbols[i]), std::imag(symbols[i]));
-    y = std::complex<double>(std::real(sync_seq_symb[i]),
-                             std::imag(sync_seq_symb[i]));
-    sum += x * std::conj(y);
-  }
+//   for (size_t i = 0; i < symbols.size(); ++i)
+//   {
+//     std::complex<double> x(symbols[i].real(), symbols[i].imag());
+//     std::complex<double> y(sync_seq_symb[i].real(), sync_seq_symb[i].imag());
+//     sum += x * std::conj(y);
+//   }
 
-  return sum;
-}
+//   return sum;
+// }
 
-double norm_corr(const std::vector<std::complex<int16_t>> &symbols,
-                 const std::vector<std::complex<int16_t>> &sync_seq_symb) {
-  std::complex<double> unnormal_cor = corr(symbols, sync_seq_symb);
+// double norm_corr(const std::vector<std::complex<int16_t>> &symbols,
+//                  const std::vector<std::complex<int16_t>> &sync_seq_symb)
+// {
+//   auto unnorm = corr(symbols, sync_seq_symb);
 
-  double norm_coeff_a = 0.0;
-  double norm_coeff_b = 0.0;
+//   double norm_a = 0.0, norm_b = 0.0;
+//   for (size_t i = 0; i < symbols.size(); ++i)
+//   {
+//     std::complex<double> x(symbols[i].real(), symbols[i].imag());
+//     std::complex<double> y(sync_seq_symb[i].real(), sync_seq_symb[i].imag());
+//     norm_a += std::norm(x);
+//     norm_b += std::norm(y);
+//   }
 
-  for (int i = 0; i < symbols.size(); ++i) {
-    norm_coeff_a += std::norm(symbols[i]);
-    norm_coeff_b += std::norm(sync_seq_symb[i]);
-  }
+//   double norm_coeff = std::sqrt(norm_a * norm_b);
+//   if (norm_coeff < 1e-12)
+//     return 0.0;
 
-  double norm_coeff = std::sqrt(norm_coeff_a) * std::sqrt(norm_coeff_b);
+//   return std::abs(unnorm / norm_coeff);
+// }
 
-  if (norm_coeff < 1e-12)
-    return 0.0;
-
-  return std::abs(unnormal_cor / norm_coeff);
-}
+#include <cmath>
+#include <complex>
+#include <vector>
 
 std::vector<double>
-OFDM_corr_receive(const std::vector<std::complex<int16_t>> &samples,
-                  const int symb_size, const int CP_size) {
-  std::vector<double> corr_function;
+OFDM_corr_receiving(const std::vector<std::complex<double>> &rx,
+                    std::vector<double> &cfo, int N, int Lcp) {
+  std::vector<double> corr_func;
 
-  for (int i = 0; i < samples.size() - symb_size - CP_size + 1; ++i) {
-    std::vector<std::complex<int16_t>> window1(samples.begin() + i,
-                                               samples.begin() + i + CP_size);
-    std::vector<std::complex<int16_t>> window2(samples.begin() + i + symb_size,
-                                               samples.begin() + i + symb_size +
-                                                   CP_size);
-    corr_function.push_back(norm_corr(window1, window2));
+  const int L = rx.size() - N - Lcp;
+
+  std::complex<double> corr = 0;
+
+  std::vector<std::complex<double>> R(L);
+  std::vector<double> A = {0};
+  std::vector<double> B = {0};
+  // cfo.reserve(L);
+
+  for (int k = 0; k < Lcp; ++k) {
+    corr += rx[k] * std::conj(rx[k + N]);
+    A[0] += std::abs(rx[k]) * std::abs(rx[k]);
+    B[0] += std::abs(rx[k + N]) * std::abs(rx[k + N]);
   }
 
-  return corr_function;
+  // cfo.push_back(std::arg(corr) / (2 * M_PI));
+
+  R.push_back(corr);
+
+  double new_a;
+  double new_b;
+
+  corr_func.push_back(std::abs(R.back() / std::sqrt(A.back() * B.back())));
+
+  for (int k = 1; k < L; ++k) {
+    std::complex<double> newR =
+        R.back() - rx[k - 1] * std::conj(rx[k + N - 1]) +
+        rx[k + Lcp - 1] * std::conj(rx[k + N + Lcp - 1]);
+
+    // cfo.push_back(std::arg(newR) / (2 * M_PI));
+
+    R.push_back(newR);
+
+    new_a = A.back() - std::norm(rx[k - 1]) + std::norm(rx[k + Lcp - 1]);
+
+    A.push_back(new_a);
+
+    new_b =
+        B.back() - std::norm(rx[k + N - 1]) + std::norm(rx[k + N + Lcp - 1]);
+
+    B.push_back(new_b);
+
+    corr_func.push_back(std::abs(R.back() / std::sqrt(A.back() * B.back())));
+  }
+
+  return corr_func;
 }
 
 std::vector<std::complex<double>>
-batch_fft(const std::vector<std::complex<int16_t>> &data, int batch_size) {
+batch_fft(const std::vector<std::complex<double>> &data, int batch_size) {
   const int N = data.size();
 
   if (batch_size <= 0 || N % batch_size != 0 || N == 0) {
@@ -219,11 +257,11 @@ batch_fft(const std::vector<std::complex<int16_t>> &data, int batch_size) {
   return result;
 }
 
-std::vector<std::complex<int16_t>>
-extract_OFDM_symbols(const std::vector<std::complex<int16_t>> &ofdm_samples,
+std::vector<std::complex<double>>
+extract_OFDM_symbols(const std::vector<std::complex<double>> &ofdm_samples,
                      const std::vector<int> &peaks, const int CP_size,
                      const int Nc) {
-  std::vector<std::complex<int16_t>> result;
+  std::vector<std::complex<double>> result;
   result.reserve(peaks.size() * Nc);
 
   for (int i = 0; i < peaks.size(); ++i) {
@@ -235,4 +273,20 @@ extract_OFDM_symbols(const std::vector<std::complex<int16_t>> &ofdm_samples,
   }
 
   return result;
+}
+
+void CFO_correction(std::vector<std::complex<double>> &samples,
+                    const std::vector<int> &peaks,
+                    const std::vector<double> &cfo, const int Lcp,
+                    const int Nc) {
+  int peak_idx;
+  for (int i = 0; i < peaks.size(); ++i) {
+    int peak_idx = peaks[i];
+    double eps = cfo[peak_idx];
+
+    for (int k = 0; k < Nc + Lcp; ++k) {
+      samples[peak_idx + k] *=
+          std::exp(std::complex<double>(0, -2 * M_PI * eps * k / Lcp));
+    }
+  }
 }
