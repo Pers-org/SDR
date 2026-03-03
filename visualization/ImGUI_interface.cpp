@@ -98,6 +98,8 @@ void run_gui(tx_cfg &tx_config, rx_cfg &rx_config, sdr_config_t &sdr_config) {
 
   int plot_height = 450;
 
+  SDL_GL_SetSwapInterval(1);
+
   while (running) {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
@@ -136,6 +138,8 @@ void run_gui(tx_cfg &tx_config, rx_cfg &rx_config, sdr_config_t &sdr_config) {
             ImGui::RadioButton("OFDM", &tx_config.OFDM, 1);
             ImGui::RadioButton("Non-OFDM", &tx_config.OFDM, 0);
 
+            ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+
             if (tx_config.OFDM) {
               ImGui::SeparatorText("OFDM");
               ImGui::InputInt("Subcarriers count", &tx_config.Nc, 1, 128);
@@ -151,11 +155,8 @@ void run_gui(tx_cfg &tx_config, rx_cfg &rx_config, sdr_config_t &sdr_config) {
 
           if (ImGui::BeginChild("TX_Plots", ImVec2(0, 0), true)) {
             if (ImPlot::BeginPlot("Bits", ImVec2(-1, plot_height))) {
-              ImPlot::SetupAxisLimits(ImAxis_X1, 0, tx_config.bits.size(),
-                                      ImGuiCond_Always);
 
-              ImPlot::SetupAxisLimits(ImAxis_Y1, -0.3, 1.5, ImGuiCond_Always);
-              ImPlot::PlotLineG("Bits", get_value<int16_t>, &tx_config.bits,
+              ImPlot::PlotLineG("Bits", get_value<uint8_t>, &tx_config.bits,
                                 tx_config.bits.size());
               ImPlot::EndPlot();
             }

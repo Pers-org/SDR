@@ -17,7 +17,7 @@ struct tx_cfg {
   int CP_size;   // Cyclic prefix size
   int count_OFDM_symb;
 
-  std::vector<int16_t> bits;
+  std::vector<uint8_t> bits;
   std::vector<std::complex<double>> symbols;
   std::vector<std::complex<int16_t>> tx_samples;
 };

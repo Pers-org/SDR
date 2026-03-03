@@ -324,9 +324,9 @@ int main(int argc, char *argv[]) {
   tx_config.IR_type = 0;
   tx_config.tx_samples.resize(sdr_config.buff_size);
   tx_config.OFDM = 1;
-  tx_config.Nc = 64;
-  tx_config.CP_size = 16;
-  tx_config.count_OFDM_symb = 24;
+  tx_config.Nc = 128;
+  tx_config.CP_size = 32;
+  tx_config.count_OFDM_symb = 12;
 
   /*init RX config*/
   rx_cfg rx_config;
@@ -340,8 +340,8 @@ int main(int argc, char *argv[]) {
   rx_config.sps = 10;
   rx_config.rx_samples.resize(sdr_config.buff_size);
   rx_config.OFDM = 1;
-  rx_config.Nc = 64;
-  rx_config.CP_size = 16;
+  rx_config.Nc = 128;
+  rx_config.CP_size = 32;
 
   std::thread gui_thread(run_gui, std::ref(tx_config), std::ref(rx_config),
                          std::ref(sdr_config));

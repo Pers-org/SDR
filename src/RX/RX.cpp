@@ -120,6 +120,10 @@ void RX_proccesing(rx_cfg &rx_config, sdr_config_t &sdr_config) {
       // std::vector<int16_t> bits =
       //     RX.demodulator_.QAM_demodulator(true_symbols, rx_config.mod_order);
     } else {
+      if (rx_config.rx_samples.size() != 1920) {
+        continue;
+      }
+
       std::vector<std::complex<double>> samples_d =
           int_to_double(rx_config.rx_samples);
 
@@ -136,11 +140,17 @@ void RX_proccesing(rx_cfg &rx_config, sdr_config_t &sdr_config) {
       rx_config.spectrum = fft(samples_d, sdr_config.rx_sample_rate);
 
       // findPeaks::PeakConditions conditions;
-      // conditions.set_height(0.9, 1.0);       // Minimum height of 2.0
-      // conditions.set_distance(rx_config.Nc); // At least 2 samples between
-      // peaks
+      // conditions.set_height(0.9, 1.0);
+      // // conditions.set_prominence(0.15);
+      // // conditions.set_distance(rx_config.Nc / 2);
+      // // conditions.set_width(2, rx_config.Nc / 4);
+      // // conditions.set_rel_height(0.5);
+      // // conditions.set_distance(rx_config.Nc); // At least 2 samples between
 
-      // std::vector<int> peaks = findPeaks::find_peaks(corr_func, conditions);
+      // std::vector<int> peaks = findPeaks::find_peaks(rx_config.corr_func,
+      // conditions);
+
+      // std::cout << peaks.size() << "\n";
 
       // CFO_correction(samples_d, peaks, cfo, rx_config.CP_size, rx_config.Nc);
 
@@ -148,7 +158,9 @@ void RX_proccesing(rx_cfg &rx_config, sdr_config_t &sdr_config) {
       // rx_config.CP_size);
 
       // std::vector<std::complex<double>> rx_symbols = extract_OFDM_symbols(
-      //     samples_d, peaks, rx_config.CP_size, rx_config.CP_size);
+      //     samples_d, peaks, rx_config.CP_size, rx_config.Nc);
+
+      // std::cout << rx_symbols.size() << "  ";
 
       // // std::cout << rx_symbols.size() << " ";
 

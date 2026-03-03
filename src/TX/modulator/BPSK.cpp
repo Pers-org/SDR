@@ -6,6 +6,7 @@
 
 std::vector<std::complex<double>>
 modulator::BPSK(const std::vector<int16_t> &bits) {
+
   double norm_coeff = 1 / std::sqrt(2);
 
   std::vector<std::complex<double>> symbols;

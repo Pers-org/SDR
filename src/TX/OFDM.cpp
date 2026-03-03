@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <complex>
 #include <fftw3.h>
+#include <iostream>
 #include <spdlog/spdlog.h>
 #include <vector>
 
@@ -29,45 +30,30 @@
 //   return batches;
 // }
 
-std::vector<std::complex<double>>
-batch_ifft(const std::vector<std::complex<double>> &data, int batch_size) {
+void batch_ifft(std::vector<std::complex<double>> &data,
+                std::vector<std::complex<double>> ifft_out, int batch_size) {
   const int N = data.size();
 
-  if (batch_size <= 0 || N % batch_size != 0)
-    return {};
+  if (batch_size <= 0 || N % batch_size != 0) {
+    std::cout << "INVALID SIZE!\n";
+    return;
+  }
 
   const int howmany = N / batch_size;
   const int n[] = {batch_size};
 
-  fftw_complex *in = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * N);
-  fftw_complex *out = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * N);
+  ifft_out.resize(batch_size * howmany);
 
-  std::memcpy(in, data.data(), sizeof(fftw_complex) * N);
+  fftw_complex *in = reinterpret_cast<fftw_complex *>(data.data());
+  fftw_complex *out = reinterpret_cast<fftw_complex *>(ifft_out.data());
 
   fftw_plan plan =
       fftw_plan_many_dft(1, n, howmany, in, nullptr, 1, batch_size, out,
                          nullptr, 1, batch_size, FFTW_BACKWARD, FFTW_ESTIMATE);
 
-  if (!plan) {
-    fftw_free(in);
-    fftw_free(out);
-    return {};
-  }
-
   fftw_execute(plan);
 
-  std::vector<std::complex<double>> result(N);
-
-  for (int i = 0; i < N; ++i) {
-    result[i] = {out[i][0], out[i][1]};
-    result[i] /= batch_size;
-  }
-
   fftw_destroy_plan(plan);
-  fftw_free(in);
-  fftw_free(out);
-
-  return result;
 }
 
 std::vector<std::complex<double>>
@@ -144,10 +130,6 @@ std::vector<std::complex<double>> BPSK(const std::vector<int16_t> &bits) {
 //   return std::abs(unnorm / norm_coeff);
 // }
 
-#include <cmath>
-#include <complex>
-#include <vector>
-
 std::vector<double>
 OFDM_corr_receiving(const std::vector<std::complex<double>> &rx,
                     std::vector<double> &cfo, int N, int Lcp) {
@@ -205,10 +187,11 @@ std::vector<std::complex<double>>
 batch_fft(const std::vector<std::complex<double>> &data, int batch_size) {
   const int N = data.size();
 
-  if (batch_size <= 0 || N % batch_size != 0 || N == 0) {
-    printf("INVALID SIZE");
-    return {{0, 0}};
-  }
+  // if (batch_size <= 0 || N % batch_size != 0 || N == 0)
+  // {
+  //   printf("INVALID SIZE");
+  //   return {{0, 0}};
+  // }
 
   const int howmany = N / batch_size;
   const int n[] = {batch_size};
@@ -264,12 +247,24 @@ extract_OFDM_symbols(const std::vector<std::complex<double>> &ofdm_samples,
   std::vector<std::complex<double>> result;
   result.reserve(peaks.size() * Nc);
 
-  for (int i = 0; i < peaks.size(); ++i) {
+  if (ofdm_samples.size() < Nc) {
+    return {};
+  }
+
+  for (int i = 0; i < peaks.size() - 1; ++i) {
     int peak = peaks[i];
+
+    if (peak + CP_size > ofdm_samples.size() ||
+        peak + CP_size + Nc > ofdm_samples.size()) {
+      continue;
+    }
+
     auto start = ofdm_samples.begin() + peak + CP_size;
     auto end = ofdm_samples.begin() + peak + CP_size + Nc;
 
     result.insert(result.end(), start, end);
+
+    // std::cout << result.size() << "  ";
   }
 
   return result;
